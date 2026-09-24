@@ -1,0 +1,23 @@
+{
+  "name": "milkmart-e-commerce",
+  "version": "1.0.0",
+  "description": "MilkMart - Pure Farm Fresh Milk & Dairy E-Commerce",
+  "type": "module",
+  "scripts": {
+    "start": "vite --port 3000 --open",
+    "dev": "vite --port 3000 --open",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "canvas-confetti": "^1.9.4",
+    "lucide-react": "^0.475.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.30.6"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.7.0",
+    "vite": "^6.4.3"
+  }
+}
