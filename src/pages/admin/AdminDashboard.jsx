@@ -109,6 +109,146 @@ export const AdminDashboard = () => {
         </div>
       </div>
 
+      {/* Inline SVG Charts: 7-Day Volume Dispatched & Bottle Circular Loop */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px', marginBottom: '28px' }}>
+        {/* Chart 1: 7-Day Liters Dispatched */}
+        <div style={{
+          backgroundColor: '#FFFFFF',
+          borderRadius: '20px',
+          border: '1.5px solid #E6DEC9',
+          padding: '24px',
+          boxShadow: '0 4px 16px rgba(24, 54, 38, 0.04)'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <div>
+              <h3 style={{ fontSize: '1.1rem', color: '#183626', margin: 0 }}>
+                7-Day Sunrise Dispatch (Liters)
+              </h3>
+              <span style={{ fontSize: '0.78rem', color: '#798C80' }}>Morning 5:30 AM route deliveries</span>
+            </div>
+            <span style={{ fontSize: '0.8rem', fontWeight: '700', color: '#196D3D', backgroundColor: '#E8F5EE', padding: '3px 10px', borderRadius: '12px' }}>
+              Avg: 480L / day
+            </span>
+          </div>
+
+          <div style={{ width: '100%', height: '160px' }}>
+            <svg viewBox="0 0 350 140" style={{ width: '100%', height: '100%' }}>
+              {/* Grid lines */}
+              <line x1="30" y1="20" x2="340" y2="20" stroke="#F1EDE3" strokeWidth="1" strokeDasharray="3 3" />
+              <line x1="30" y1="60" x2="340" y2="60" stroke="#F1EDE3" strokeWidth="1" strokeDasharray="3 3" />
+              <line x1="30" y1="100" x2="340" y2="100" stroke="#F1EDE3" strokeWidth="1" strokeDasharray="3 3" />
+
+              {/* Y Axis text */}
+              <text x="22" y="24" fontSize="9" fill="#798C80" textAnchor="end">600L</text>
+              <text x="22" y="64" fontSize="9" fill="#798C80" textAnchor="end">400L</text>
+              <text x="22" y="104" fontSize="9" fill="#798C80" textAnchor="end">200L</text>
+
+              {/* Bars: Mon - Sun */}
+              {[
+                { day: 'Mon', h: 75, val: '430L', x: 45 },
+                { day: 'Tue', h: 80, val: '450L', x: 88 },
+                { day: 'Wed', h: 85, val: '480L', x: 131 },
+                { day: 'Thu', h: 82, val: '465L', x: 174 },
+                { day: 'Fri', h: 90, val: '510L', x: 217 },
+                { day: 'Sat', h: 105, val: '580L', x: 260 },
+                { day: 'Sun', h: 108, val: '595L', x: 303 }
+              ].map((bar, i) => (
+                <g key={i}>
+                  <rect
+                    x={bar.x}
+                    y={110 - bar.h}
+                    width="24"
+                    height={bar.h}
+                    rx="4"
+                    fill={i >= 5 ? '#E8C582' : '#183626'}
+                  />
+                  <text x={bar.x + 12} y="126" fontSize="9.5" fill="#55685C" textAnchor="middle" fontWeight="600">
+                    {bar.day}
+                  </text>
+                  <text x={bar.x + 12} y={105 - bar.h} fontSize="8" fill="#183626" textAnchor="middle" fontWeight="700">
+                    {bar.val}
+                  </text>
+                </g>
+              ))}
+            </svg>
+          </div>
+        </div>
+
+        {/* Chart 2: 7-Day Bottle Return Rate % Area Trend */}
+        <div style={{
+          backgroundColor: '#FFFFFF',
+          borderRadius: '20px',
+          border: '1.5px solid #E6DEC9',
+          padding: '24px',
+          boxShadow: '0 4px 16px rgba(24, 54, 38, 0.04)'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <div>
+              <h3 style={{ fontSize: '1.1rem', color: '#183626', margin: 0 }}>
+                Glass Bottle Return Loop Trend
+              </h3>
+              <span style={{ fontSize: '0.78rem', color: '#798C80' }}>Empties returned / bottles dropped</span>
+            </div>
+            <span style={{ fontSize: '0.8rem', fontWeight: '700', color: '#196D3D', backgroundColor: '#E8F5EE', padding: '3px 10px', borderRadius: '12px' }}>
+              Target: 95%
+            </span>
+          </div>
+
+          <div style={{ width: '100%', height: '160px' }}>
+            <svg viewBox="0 0 350 140" style={{ width: '100%', height: '100%' }}>
+              <defs>
+                <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#196D3D" stopOpacity="0.35" />
+                  <stop offset="100%" stopColor="#196D3D" stopOpacity="0.02" />
+                </linearGradient>
+              </defs>
+
+              {/* Grid lines */}
+              <line x1="30" y1="20" x2="340" y2="20" stroke="#F1EDE3" strokeWidth="1" strokeDasharray="3 3" />
+              <line x1="30" y1="60" x2="340" y2="60" stroke="#F1EDE3" strokeWidth="1" strokeDasharray="3 3" />
+              <line x1="30" y1="100" x2="340" y2="100" stroke="#F1EDE3" strokeWidth="1" strokeDasharray="3 3" />
+
+              <text x="24" y="24" fontSize="9" fill="#798C80" textAnchor="end">98%</text>
+              <text x="24" y="64" fontSize="9" fill="#798C80" textAnchor="end">94%</text>
+              <text x="24" y="104" fontSize="9" fill="#798C80" textAnchor="end">90%</text>
+
+              {/* Area path */}
+              <path
+                d="M 50,75 L 95,70 L 140,65 L 185,58 L 230,50 L 275,44 L 320,38 L 320,110 L 50,110 Z"
+                fill="url(#areaGrad)"
+              />
+
+              {/* Line path */}
+              <path
+                d="M 50,75 L 95,70 L 140,65 L 185,58 L 230,50 L 275,44 L 320,38"
+                fill="none"
+                stroke="#196D3D"
+                strokeWidth="2.5"
+              />
+
+              {/* Points & Days */}
+              {[
+                { x: 50, y: 75, day: 'Mon', p: '92.4%' },
+                { x: 95, y: 70, day: 'Tue', p: '93.0%' },
+                { x: 140, y: 65, day: 'Wed', p: '93.6%' },
+                { x: 185, y: 58, day: 'Thu', p: '94.2%' },
+                { x: 230, y: 50, day: 'Fri', p: '94.9%' },
+                { x: 275, y: 44, day: 'Sat', p: '95.4%' },
+                { x: 320, y: 38, day: 'Sun', p: '95.8%' }
+              ].map((pt, i) => (
+                <g key={i}>
+                  <circle cx={pt.x} cy={pt.y} r="3.5" fill="#FAF7F2" stroke="#196D3D" strokeWidth="2" />
+                  <text x={pt.x} y="126" fontSize="9.5" fill="#55685C" textAnchor="middle" fontWeight="600">
+                    {pt.day}
+                  </text>
+                </g>
+              ))}
+            </svg>
+          </div>
+        </div>
+      </div>
+
+
       {/* Chiller Tank Telemetry & Procurement Section */}
       <div style={{
         backgroundColor: '#FFFFFF',
