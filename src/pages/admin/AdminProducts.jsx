@@ -25,6 +25,8 @@ export const AdminProducts = () => {
     stock: 50,
     availability: 'In Stock',
     image: '/images/products/milk-a2.jpg',
+    hsnCode: '0401',
+    gstRate: 0,
     description: 'Farm-fresh pure whole dairy from pastured cows.'
   });
 
@@ -42,6 +44,8 @@ export const AdminProducts = () => {
       stock: 50,
       availability: 'In Stock',
       image: '/images/products/milk-a2.jpg',
+      hsnCode: '0401',
+      gstRate: 0,
       description: 'Farm-fresh pure whole dairy from pastured cows.'
     });
     setIsModalOpen(true);
@@ -61,6 +65,8 @@ export const AdminProducts = () => {
       stock: product.stock,
       availability: product.availability,
       image: product.image,
+      hsnCode: product.hsnCode || (product.category === 'ghee' ? '0405' : product.category === 'paneer' ? '0406' : '0401'),
+      gstRate: product.gstRate !== undefined ? product.gstRate : (product.category === 'ghee' ? 12 : product.category === 'paneer' ? 5 : 0),
       description: product.description
     });
     setIsModalOpen(true);
@@ -156,6 +162,7 @@ export const AdminProducts = () => {
                 <th style={{ padding: '14px 18px', fontWeight: '700' }}>Product</th>
                 <th style={{ padding: '14px 18px', fontWeight: '700' }}>Category</th>
                 <th style={{ padding: '14px 18px', fontWeight: '700' }}>Price</th>
+                <th style={{ padding: '14px 18px', fontWeight: '700' }}>HSN / Tax</th>
                 <th style={{ padding: '14px 18px', fontWeight: '700' }}>Stock</th>
                 <th style={{ padding: '14px 18px', fontWeight: '700' }}>Status</th>
                 <th style={{ padding: '14px 18px', fontWeight: '700', textAlign: 'right' }}>Actions</th>
@@ -178,6 +185,11 @@ export const AdminProducts = () => {
                   </td>
                   <td style={{ padding: '14px 18px', fontWeight: '700', color: '#183626' }}>
                     ₹{p.price}
+                  </td>
+                  <td style={{ padding: '14px 18px' }}>
+                    <span style={{ backgroundColor: '#FAF5EE', border: '1px solid #E6DEC9', borderRadius: '6px', padding: '2px 8px', fontSize: '0.78rem', color: '#183626', fontWeight: '600' }}>
+                      HSN: {p.hsnCode || (p.category === 'ghee' ? '0405' : '0401')} ({p.gstRate !== undefined ? p.gstRate : (p.category === 'ghee' ? 12 : 0)}% GST)
+                    </span>
                   </td>
                   <td style={{ padding: '14px 18px' }}>
                     <span style={{
@@ -291,6 +303,22 @@ export const AdminProducts = () => {
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', marginBottom: '4px' }}>Current Stock Units</label>
                   <input type="number" required value={formData.stock} onChange={(e) => setFormData({ ...formData, stock: Number(e.target.value) })} style={{ width: '100%' }} />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', marginBottom: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', marginBottom: '4px' }}>HSN Tariff Code</label>
+                  <input type="text" required value={formData.hsnCode} onChange={(e) => setFormData({ ...formData, hsnCode: e.target.value })} placeholder="e.g. 0401 or 0405" style={{ width: '100%' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', marginBottom: '4px' }}>GST Tax Rate (%)</label>
+                  <select value={formData.gstRate} onChange={(e) => setFormData({ ...formData, gstRate: Number(e.target.value) })} style={{ width: '100%' }}>
+                    <option value={0}>0% GST (Fresh Liquid Milk & Raw Curd)</option>
+                    <option value={5}>5% GST (Fresh Artisanal Paneer)</option>
+                    <option value={12}>12% GST (Bilona Cultured Ghee & Butter)</option>
+                    <option value={18}>18% GST (Condensed / Value-Added)</option>
+                  </select>
                 </div>
               </div>
 
