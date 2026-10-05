@@ -1,19 +1,27 @@
 import React from 'react';
 import { X, ShieldCheck, Award, CheckCircle2, ThermometerSnowflake, Clock, Sparkles, MapPin, QrCode } from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
+import { Store } from '../../data/store';
 
 export const PurityCertificateModal = ({ isOpen, onClose, product }) => {
   if (!isOpen || !product) return null;
 
-  const purity = product.purityCertificate || {
-    batchNumber: "MM-BATCH-849",
-    milkingTime: "4:30 AM Today",
-    chillingTemp: "3.6°C (Unbroken Cold Chain)",
+  const allBatches = Store.getSellerBatches();
+  const matchingBatch = allBatches.find(b => b.productName?.toLowerCase() === product.name?.toLowerCase()) || allBatches[0];
+
+  const purity = {
+    batchNumber: matchingBatch?.id || product.purityCertificate?.batchNumber || "BATCH-GIR-9042",
+    milkingTime: matchingBatch ? `${matchingBatch.milkingTime} (${matchingBatch.date})` : (product.purityCertificate?.milkingTime || "4:30 AM Today"),
+    chillingTemp: matchingBatch ? `${matchingBatch.chillerTemp}°C (Farm Chiller Vat)` : (product.purityCertificate?.chillingTemp || "3.6°C (Unbroken Cold Chain)"),
     aflatoxinM1: "Absent (<0.01 µg/kg)",
-    antibiotics: "Not Detected (Nil)",
+    antibiotics: matchingBatch?.adulterationTests?.antibioticResidues || "Not Detected (Nil)",
     syntheticHormones: "Zero (No Oxytocin)",
-    adulterationTest: "Passed (100% Pure Raw Dairy)",
-    labCertification: "FSSAI & NABL Accredited Lab #KA-8902"
+    adulterationTest: "Passed (100% Pure Raw Dairy - Zero Urea / Detergent)",
+    labCertification: matchingBatch?.labCertNumber || "FSSAI & NABL Accredited Lab #KA-8902",
+    farmName: matchingBatch?.farmName || "Gir Amrit Organic Gaushala",
+    farmerName: matchingBatch?.farmerName || "Devendra Patel",
+    fatContent: matchingBatch ? `${matchingBatch.fatPercentage}% Natural Fat` : (product.fatContent || '4.8% Fat'),
+    snfContent: matchingBatch ? `${matchingBatch.snfPercentage}% SNF` : (product.snf || '8.9% SNF')
   };
 
   const testResults = [
@@ -21,7 +29,7 @@ export const PurityCertificateModal = ({ isOpen, onClose, product }) => {
     { parameter: "Antibiotic Residue (Beta-lactam, Tetracycline)", standard: "Maximum Residue Limit (MRL)", actual: purity.antibiotics, status: "Passed", icon: Award },
     { parameter: "Synthetic Hormones (Oxytocin, Bovine Somatotropin)", standard: "Zero Tolerance", actual: purity.syntheticHormones, status: "Passed", icon: CheckCircle2 },
     { parameter: "Adulterants (Water, Urea, Detergent, Starch, Neutralizers)", standard: "Nil (0.00%)", actual: purity.adulterationTest, status: "Passed", icon: CheckCircle2 },
-    { parameter: "Natural Milk Fat & Solid-Not-Fat (SNF)", standard: "FSSAI A2 Raw Dairy Standard", actual: `${product.fatContent || '4.8% Fat'} • ${product.snf || '8.9% SNF'}`, status: "Certified", icon: Sparkles }
+    { parameter: "Natural Milk Fat & Solid-Not-Fat (SNF)", standard: "FSSAI A2 Raw Dairy Standard", actual: `${purity.fatContent} • ${purity.snfContent}`, status: "Certified", icon: Sparkles }
   ];
 
   return (

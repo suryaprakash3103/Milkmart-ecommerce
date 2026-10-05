@@ -1,6 +1,7 @@
 import { mockUsers } from './mockUsers';
 import { initialOrders } from './mockOrders';
 import { initialSubscriptions } from './mockSubscriptions';
+import { initialProducts } from './products';
 
 // Storage keys
 const STORAGE_KEYS = {
@@ -9,7 +10,10 @@ const STORAGE_KEYS = {
   ORDERS: 'milkmart_orders',
   SUBSCRIPTIONS: 'milkmart_subscriptions',
   WALLET_TX: 'milkmart_wallet_tx',
-  BOTTLE_LOG: 'milkmart_bottle_log'
+  BOTTLE_LOG: 'milkmart_bottle_log',
+  PRODUCTS: 'milkmart_products',
+  SELLER_BATCHES: 'milkmart_seller_batches',
+  SELLER_PAYOUTS: 'milkmart_seller_payouts'
 };
 
 // Initial wallet transactions seed
@@ -90,6 +94,86 @@ const initialBottleLog = [
   }
 ];
 
+// Initial Seller Morning Milking Batches & Purity Certs (Unique Farm-to-Doorstep Feature)
+const initialSellerBatches = [
+  {
+    id: "BATCH-GIR-9042",
+    sellerId: "usr-seller-01",
+    farmName: "Gir Amrit Organic Gaushala",
+    farmerName: "Devendra Patel",
+    productName: "Farm Fresh A2 Gir Cow Raw Milk",
+    date: "2026-09-30",
+    milkingTime: "4:30 AM",
+    litersDispatched: 320,
+    fatPercentage: 4.8,
+    snfPercentage: 8.9,
+    chillerTemp: 3.6,
+    somaticCellCount: "120,000 cells/ml (Premium Grade A)",
+    adulterationTests: {
+      urea: "Negative (Passed)",
+      detergent: "Negative (Passed)",
+      starch: "Negative (Passed)",
+      waterAdded: "0% (Nil Added)",
+      antibioticResidues: "Nil (100% Free)"
+    },
+    feedLog: "Free-grazing green Napier grass, Moringa leaves & organic barley fodder",
+    cattleVaccinationStatus: "100% Verified Healthy • Bi-weekly Veterinary Inspection",
+    labCertNumber: "FSSAI-NABL-KA-2026-9042",
+    status: "Verified & Bottled for Sunrise Run"
+  },
+  {
+    id: "BATCH-MURRAH-8810",
+    sellerId: "usr-seller-01",
+    farmName: "Gir Amrit Organic Gaushala",
+    farmerName: "Devendra Patel",
+    productName: "Creamy Buffalo Raw Whole Milk",
+    date: "2026-09-29",
+    milkingTime: "4:45 AM",
+    litersDispatched: 180,
+    fatPercentage: 7.4,
+    snfPercentage: 9.3,
+    chillerTemp: 3.7,
+    somaticCellCount: "140,000 cells/ml (Grade A)",
+    adulterationTests: {
+      urea: "Negative (Passed)",
+      detergent: "Negative (Passed)",
+      starch: "Negative (Passed)",
+      waterAdded: "0% (Nil Added)",
+      antibioticResidues: "Nil"
+    },
+    feedLog: "Organic cotton seed mash, mineral lick blocks & green sorghum",
+    cattleVaccinationStatus: "Verified Healthy",
+    labCertNumber: "FSSAI-NABL-KA-2026-8810",
+    status: "Verified & Bottled for Sunrise Run"
+  }
+];
+
+// Initial Seller Payouts
+const initialSellerPayouts = [
+  {
+    id: "pay-501",
+    sellerId: "usr-seller-01",
+    date: "2026-09-28",
+    amount: 18500,
+    litersPaid: 272,
+    avgFat: 4.8,
+    ratePerLiter: 68.0,
+    status: "Settled to Bank",
+    bankRef: "HDFC-NEFT-99120412"
+  },
+  {
+    id: "pay-502",
+    sellerId: "usr-seller-01",
+    date: "2026-09-21",
+    amount: 21000,
+    litersPaid: 310,
+    avgFat: 4.75,
+    ratePerLiter: 67.7,
+    status: "Settled to Bank",
+    bankRef: "HDFC-NEFT-88410293"
+  }
+];
+
 // Read from localStorage with fallback
 const getStorageItem = (key, fallback) => {
   try {
@@ -114,9 +198,35 @@ const setStorageItem = (key, value) => {
 export const Store = {
   // Init
   init() {
-    if (!localStorage.getItem(STORAGE_KEYS.USERS)) {
-      setStorageItem(STORAGE_KEYS.USERS, mockUsers);
+    // 1. Users
+    const currentUsers = getStorageItem(STORAGE_KEYS.USERS, []);
+    const mergedUsers = [...currentUsers];
+    mockUsers.forEach(mu => {
+      const idx = mergedUsers.findIndex(u => u.email.toLowerCase() === mu.email.toLowerCase());
+      if (idx === -1) {
+        mergedUsers.push(mu);
+      } else {
+        mergedUsers[idx] = { ...mu, ...mergedUsers[idx] };
+      }
+    });
+    setStorageItem(STORAGE_KEYS.USERS, mergedUsers);
+
+    // 2. Products
+    if (!localStorage.getItem(STORAGE_KEYS.PRODUCTS)) {
+      setStorageItem(STORAGE_KEYS.PRODUCTS, initialProducts);
     }
+
+    // 3. Batches
+    if (!localStorage.getItem(STORAGE_KEYS.SELLER_BATCHES)) {
+      setStorageItem(STORAGE_KEYS.SELLER_BATCHES, initialSellerBatches);
+    }
+
+    // 4. Payouts
+    if (!localStorage.getItem(STORAGE_KEYS.SELLER_PAYOUTS)) {
+      setStorageItem(STORAGE_KEYS.SELLER_PAYOUTS, initialSellerPayouts);
+    }
+
+    // 5. Wallet & Bottle log
     if (!localStorage.getItem(STORAGE_KEYS.WALLET_TX)) {
       setStorageItem(STORAGE_KEYS.WALLET_TX, initialWalletTransactions);
     }
@@ -130,8 +240,7 @@ export const Store = {
       setStorageItem(STORAGE_KEYS.SUBSCRIPTIONS, initialSubscriptions);
     }
     if (!localStorage.getItem(STORAGE_KEYS.SESSION)) {
-      // Default to customer Surya Prakash
-      const user = mockUsers.find(u => u.email === 'surya.prakash@example.com') || mockUsers[0];
+      const user = mergedUsers.find(u => u.email === 'surya.prakash@example.com') || mergedUsers[0];
       setStorageItem(STORAGE_KEYS.SESSION, user);
     }
   },
@@ -199,6 +308,113 @@ export const Store = {
   clearSession() {
     localStorage.removeItem(STORAGE_KEYS.SESSION);
     localStorage.removeItem('milkmart_user');
+  },
+
+  // Products (Read/Write shared between Storefront, Admin & Seller Portal)
+  getProducts() {
+    return getStorageItem(STORAGE_KEYS.PRODUCTS, initialProducts);
+  },
+
+  saveProduct(productData) {
+    const products = this.getProducts();
+    const existingIdx = products.findIndex(p => p.id === productData.id);
+    let updated;
+    if (existingIdx >= 0) {
+      updated = [...products];
+      updated[existingIdx] = { ...updated[existingIdx], ...productData };
+    } else {
+      const newProd = {
+        ...productData,
+        id: productData.id || `prod-${Date.now()}`,
+        rating: productData.rating || 5.0,
+        reviewCount: productData.reviewCount || 1,
+        availability: productData.availability || 'In Stock',
+        freshness: productData.freshness || 'Fresh Today'
+      };
+      updated = [newProd, ...products];
+    }
+    setStorageItem(STORAGE_KEYS.PRODUCTS, updated);
+    return productData;
+  },
+
+  deleteProduct(id) {
+    const products = this.getProducts();
+    const updated = products.filter(p => p.id !== id);
+    setStorageItem(STORAGE_KEYS.PRODUCTS, updated);
+  },
+
+  // Seller Products
+  getSellerProducts(sellerId) {
+    const all = this.getProducts();
+    // Default to Patel's farm or seller matching ID
+    return all.filter(p => p.sellerId === sellerId || p.farmOrigin?.toLowerCase().includes('kengeri') || p.brand?.toLowerCase().includes('gir amrit') || !p.sellerId);
+  },
+
+  // Seller Morning Batches & Purity Certificates (Unique Feature)
+  getSellerBatches(sellerId) {
+    const all = getStorageItem(STORAGE_KEYS.SELLER_BATCHES, initialSellerBatches);
+    if (!sellerId) return all;
+    return all.filter(b => b.sellerId === sellerId);
+  },
+
+  getBatchById(id) {
+    const all = getStorageItem(STORAGE_KEYS.SELLER_BATCHES, initialSellerBatches);
+    return all.find(b => b.id === id);
+  },
+
+  addSellerBatch(batchData) {
+    const all = getStorageItem(STORAGE_KEYS.SELLER_BATCHES, initialSellerBatches);
+    const id = `BATCH-GIR-${Math.floor(1000 + Math.random() * 9000)}`;
+    const newBatch = {
+      id,
+      date: new Date().toISOString().split('T')[0],
+      milkingTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      status: "Verified & Bottled for Sunrise Run",
+      labCertNumber: `FSSAI-NABL-KA-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
+      ...batchData
+    };
+    const updated = [newBatch, ...all];
+    setStorageItem(STORAGE_KEYS.SELLER_BATCHES, updated);
+    return newBatch;
+  },
+
+  // Seller Payouts
+  getSellerPayouts(sellerId) {
+    const all = getStorageItem(STORAGE_KEYS.SELLER_PAYOUTS, initialSellerPayouts);
+    if (!sellerId) return all;
+    return all.filter(p => p.sellerId === sellerId);
+  },
+
+  requestSellerPayout(sellerId, amount) {
+    const all = getStorageItem(STORAGE_KEYS.SELLER_PAYOUTS, initialSellerPayouts);
+    const users = this.getUsers();
+    const user = users.find(u => u.id === sellerId);
+    
+    if (user) {
+      user.walletBalance = Math.max(0, (user.walletBalance || 0) - Number(amount));
+      this.saveUser(user);
+      
+      const currentSession = this.getSessionUser();
+      if (currentSession && currentSession.id === user.id) {
+        this.setSessionUser({ ...currentSession, walletBalance: user.walletBalance });
+      }
+    }
+
+    const newPayout = {
+      id: `pay-${Date.now()}`,
+      sellerId,
+      date: new Date().toISOString().split('T')[0],
+      amount: Number(amount),
+      litersPaid: Math.round(Number(amount) / 68),
+      avgFat: 4.8,
+      ratePerLiter: 68.0,
+      status: "Settled to Bank",
+      bankRef: `HDFC-NEFT-${Math.floor(10000000 + Math.random() * 90000000)}`
+    };
+
+    const updated = [newPayout, ...all];
+    setStorageItem(STORAGE_KEYS.SELLER_PAYOUTS, updated);
+    return newPayout;
   },
 
   // Wallet
@@ -298,7 +514,6 @@ export const Store = {
     // 2. If bottles collected, credit customer wallet + log transaction
     const creditAmount = Number(bottlesCollected) * 10;
     const users = this.getUsers();
-    // Find customer by order or default customer
     const targetCustomer = users.find(u => u.name.toLowerCase() === customerName.toLowerCase() || u.role === 'customer') || users.find(u => u.role === 'customer');
 
     if (creditAmount > 0 && targetCustomer) {

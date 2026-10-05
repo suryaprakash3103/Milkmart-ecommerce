@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useProducts } from '../../context/ProductContext';
 import { useToast } from '../../context/ToastContext';
-import { Plus, Edit2, Trash2, Check, X, Search, Filter } from 'lucide-react';
+import { Plus, Edit2, Trash2, Check, X, Search, Filter, CheckCircle2, ShieldAlert } from 'lucide-react';
+import { sellerService } from '../../services/sellerService';
 
 export const AdminProducts = () => {
   const { products, addProduct, updateProduct, deleteProduct, toggleAvailability, categories } = useProducts();
@@ -200,22 +201,73 @@ export const AdminProducts = () => {
                     </span>
                   </td>
                   <td style={{ padding: '14px 18px' }}>
-                    <button
-                      onClick={() => toggleAvailability(p.id)}
-                      style={{
-                        padding: '4px 10px',
-                        borderRadius: '12px',
-                        fontSize: '0.74rem',
-                        fontWeight: '700',
-                        backgroundColor: p.availability === 'In Stock' ? '#E8F5EE' : '#FDE8E4',
-                        color: p.availability === 'In Stock' ? '#196D3D' : '#B2341A',
-                        cursor: 'pointer',
-                        border: 'none'
-                      }}
-                      title="Click to toggle availability"
-                    >
-                      {p.availability}
-                    </button>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start' }}>
+                      <button
+                        onClick={() => toggleAvailability(p.id)}
+                        style={{
+                          padding: '4px 10px',
+                          borderRadius: '12px',
+                          fontSize: '0.74rem',
+                          fontWeight: '700',
+                          backgroundColor: p.availability === 'In Stock' ? '#E8F5EE' : '#FDE8E4',
+                          color: p.availability === 'In Stock' ? '#196D3D' : '#B2341A',
+                          cursor: 'pointer',
+                          border: 'none'
+                        }}
+                        title="Click to toggle availability"
+                      >
+                        {p.availability}
+                      </button>
+
+                      {p.approvalStatus === 'pending' && (
+                        <div style={{ display: 'flex', gap: '4px', marginTop: '2px' }}>
+                          <button
+                            onClick={async () => {
+                              await sellerService.approveProduct(p.id);
+                              updateProduct(p.id, { approvalStatus: 'approved' });
+                              showToast(`Approved '${p.name}' for storefront!`, 'success');
+                            }}
+                            style={{
+                              padding: '2px 6px',
+                              borderRadius: '4px',
+                              border: 'none',
+                              backgroundColor: '#196D3D',
+                              color: '#FAF7F2',
+                              fontSize: '0.68rem',
+                              fontWeight: '700',
+                              cursor: 'pointer'
+                            }}
+                            title="Approve seller product"
+                          >
+                            ✓ Approve
+                          </button>
+                          <button
+                            onClick={async () => {
+                              await sellerService.rejectProduct(p.id);
+                              updateProduct(p.id, { approvalStatus: 'rejected' });
+                              showToast(`Rejected '${p.name}'`, 'info');
+                            }}
+                            style={{
+                              padding: '2px 6px',
+                              borderRadius: '4px',
+                              border: 'none',
+                              backgroundColor: '#B2341A',
+                              color: '#FAF7F2',
+                              fontSize: '0.68rem',
+                              fontWeight: '700',
+                              cursor: 'pointer'
+                            }}
+                            title="Reject seller product"
+                          >
+                            ✕ Reject
+                          </button>
+                        </div>
+                      )}
+
+                      {p.approvalStatus === 'approved' && p.sellerId && (
+                        <span style={{ fontSize: '0.68rem', color: '#196D3D', fontWeight: '700' }}>✓ Seller Live</span>
+                      )}
+                    </div>
                   </td>
                   <td style={{ padding: '14px 18px', textAlign: 'right' }}>
                     <div style={{ display: 'inline-flex', gap: '8px' }}>

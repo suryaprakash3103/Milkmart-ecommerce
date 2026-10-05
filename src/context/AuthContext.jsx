@@ -92,7 +92,12 @@ export const AuthProvider = ({ children }) => {
       ] : initialAddresses,
       vehicleType: userData.vehicleType || (signupRole === 'delivery' ? 'Electric Chilled EV Van' : undefined),
       route: userData.route || (signupRole === 'delivery' ? 'Route 4B - Morning Sunrise Fleet' : undefined),
-      rating: signupRole === 'delivery' ? 5.0 : undefined,
+      farmName: userData.farmName || (signupRole === 'seller' ? 'Organic Dairy Pasture' : undefined),
+      fssaiLicense: userData.fssaiLicense || (signupRole === 'seller' ? '11223344556677' : undefined),
+      cattleCount: userData.cattleCount || (signupRole === 'seller' ? 30 : undefined),
+      dailyCapacityLiters: userData.dailyCapacityLiters || (signupRole === 'seller' ? 250 : undefined),
+      location: userData.location || (signupRole === 'seller' ? 'Kengeri Valley Dairy Pastures, Bengaluru West' : undefined),
+      rating: signupRole === 'delivery' || signupRole === 'seller' ? 5.0 : undefined,
       completedDeliveries: 0,
       bottlesCollectedCount: 0
     };
@@ -142,6 +147,20 @@ export const AuthProvider = ({ children }) => {
           role: 'delivery',
           vehicleType: 'Chilled EV (KA01-EK-4501)',
           route: 'Route 4B - HSR & Koramangala'
+        };
+      } else if (newRole === 'seller') {
+        target = {
+          id: 'usr-seller-01',
+          name: 'Devendra Patel',
+          email: 'farmer.patel@milkmart.farm',
+          password: 'farmer123',
+          role: 'seller',
+          farmName: 'Gir Amrit Organic Gaushala',
+          walletBalance: 24500,
+          location: 'Kengeri Valley Dairy Pastures, Bengaluru West',
+          fssaiLicense: '11223344556677',
+          cattleCount: 48,
+          dailyCapacityLiters: 350
         };
       } else {
         target = {

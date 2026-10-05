@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { BrandLogo } from '../../components/common/BrandLogo';
 import { 
-  User, Mail, Phone, Lock, Truck, MapPin, 
+  User, Mail, Phone, Lock, Truck, MapPin, Award, 
   ArrowRight, CheckCircle2, AlertCircle, Sparkles 
 } from 'lucide-react';
 
@@ -29,7 +29,12 @@ export const SignupPage = () => {
     instructions: 'Leave inside insulated doorstep pouch before 7 AM',
     // Delivery Partner specific
     vehicleType: 'Electric Chilled Van',
-    route: 'Route 4B - HSR Layout & Koramangala'
+    route: 'Route 4B - HSR Layout & Koramangala',
+    // Seller specific
+    farmName: 'Amrit Indigenous Dairy Gaushala',
+    fssaiLicense: '11223344556677',
+    dailyCapacityLiters: 350,
+    farmLocation: 'Kengeri Valley Dairy Pastures, Bengaluru'
   });
 
   const [error, setError] = useState('');
@@ -69,7 +74,11 @@ export const SignupPage = () => {
         instructions: formData.instructions
       } : undefined,
       vehicleType: signupRole === 'delivery' ? formData.vehicleType : undefined,
-      route: signupRole === 'delivery' ? formData.route : undefined
+      route: signupRole === 'delivery' ? formData.route : undefined,
+      farmName: signupRole === 'seller' ? formData.farmName : undefined,
+      fssaiLicense: signupRole === 'seller' ? formData.fssaiLicense : undefined,
+      dailyCapacityLiters: signupRole === 'seller' ? Number(formData.dailyCapacityLiters) : undefined,
+      location: signupRole === 'seller' ? formData.farmLocation : undefined
     };
 
     setTimeout(() => {
@@ -80,6 +89,8 @@ export const SignupPage = () => {
         showToast(`Welcome to MilkMart, ${formData.name}! Your account is ready.`);
         if (signupRole === 'delivery') {
           navigate('/partner');
+        } else if (signupRole === 'seller') {
+          navigate('/seller');
         } else {
           navigate('/account');
         }
@@ -178,6 +189,28 @@ export const SignupPage = () => {
               }}
             >
               <Truck size={15} /> Delivery Partner
+            </button>
+            <button
+              type="button"
+              onClick={() => { setSignupRole('seller'); setError(''); }}
+              style={{
+                flex: 1,
+                padding: '10px 8px',
+                borderRadius: '8px',
+                border: 'none',
+                fontSize: '0.88rem',
+                fontWeight: signupRole === 'seller' ? '700' : '600',
+                backgroundColor: signupRole === 'seller' ? '#183626' : 'transparent',
+                color: signupRole === 'seller' ? '#FAF7F2' : '#55685C',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <Award size={15} /> Farm Producer
             </button>
           </div>
 
@@ -407,6 +440,70 @@ export const SignupPage = () => {
               </div>
             )}
 
+            {/* Farm Producer Specific Fields */}
+            {signupRole === 'seller' && (
+              <div style={{
+                backgroundColor: '#FAF5EE',
+                border: '1px solid #E8C582',
+                borderRadius: '14px',
+                padding: '16px',
+                marginBottom: '20px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '700', color: '#183626', fontSize: '0.86rem', marginBottom: '10px' }}>
+                  <Award size={15} color="#A26D24" /> Dairy Gaushala &amp; FSSAI Credentials
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.78rem', color: '#798C80', marginBottom: '2px' }}>Farm / Gaushala Name</label>
+                    <input
+                      type="text"
+                      name="farmName"
+                      value={formData.farmName}
+                      onChange={handleChange}
+                      placeholder="e.g. Gir Amrit Organic Gaushala"
+                      style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #E6DEC9', backgroundColor: '#FFFFFF' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.78rem', color: '#798C80', marginBottom: '2px' }}>FSSAI Dairy License No.</label>
+                    <input
+                      type="text"
+                      name="fssaiLicense"
+                      value={formData.fssaiLicense}
+                      onChange={handleChange}
+                      placeholder="14-digit FSSAI number"
+                      style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #E6DEC9', backgroundColor: '#FFFFFF' }}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.78rem', color: '#798C80', marginBottom: '2px' }}>Daily Milking Quota (Liters)</label>
+                    <input
+                      type="number"
+                      name="dailyCapacityLiters"
+                      value={formData.dailyCapacityLiters}
+                      onChange={handleChange}
+                      style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #E6DEC9', backgroundColor: '#FFFFFF' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.78rem', color: '#798C80', marginBottom: '2px' }}>Farm Location / Pasture</label>
+                    <input
+                      type="text"
+                      name="farmLocation"
+                      value={formData.farmLocation}
+                      onChange={handleChange}
+                      placeholder="e.g. Kengeri Valley, Bengaluru"
+                      style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #E6DEC9', backgroundColor: '#FFFFFF' }}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Submit */}
             <button
               type="submit"
@@ -428,7 +525,7 @@ export const SignupPage = () => {
                 boxShadow: '0 4px 14px rgba(24, 54, 38, 0.2)'
               }}
             >
-              {isSubmitting ? 'Creating account...' : `Register as ${signupRole === 'delivery' ? 'Fleet Delivery Partner' : 'Customer'}`}
+              {isSubmitting ? 'Creating account...' : `Register as ${signupRole === 'delivery' ? 'Fleet Delivery Partner' : signupRole === 'seller' ? 'Dairy Farm Producer' : 'Customer'}`}
               <ArrowRight size={16} />
             </button>
           </form>

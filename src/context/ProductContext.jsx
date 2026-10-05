@@ -42,6 +42,16 @@ export const ProductProvider = ({ children }) => {
   }, [products]);
 
   useEffect(() => {
+    const handleSync = (e) => {
+      if (e.detail?.key === 'milkmart_products' && e.detail.value) {
+        setProducts(e.detail.value);
+      }
+    };
+    window.addEventListener('milkmart:datasync', handleSync);
+    return () => window.removeEventListener('milkmart:datasync', handleSync);
+  }, []);
+
+  useEffect(() => {
     localStorage.setItem('milkmart_reviews', JSON.stringify(reviews));
   }, [reviews]);
 
@@ -144,16 +154,23 @@ export const ProductProvider = ({ children }) => {
                           item.tags.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()));
 
     const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
-    const matchesBrand = selectedBrand === 'all' || item.brand === selectedBrand;
+    const matchesBrand = selectedBrand === 'all' || 
+      item.brand === selectedBrand || 
+      item.farmName === selectedBrand ||
+      (selectedBrand.includes('Green Valley') && (item.brand?.includes('Green Valley') || item.brand?.includes('MilkMart Pure Farm'))) ||
+      (selectedBrand.includes('Lakshmi') && item.brand?.includes('Lakshmi')) ||
+      (selectedBrand.includes('Gir') && item.brand?.includes('Gir'));
+
     const matchesPrice = item.price <= priceRange;
     const matchesRating = item.rating >= ratingFilter;
     const matchesStock = !inStockOnly || item.availability === 'In Stock';
+    const isApproved = !item.approvalStatus || item.approvalStatus === 'approved';
 
     const matchesFat = selectedFatContent === 'all' ||
-      (selectedFatContent === 'low' && (item.fatContent.toLowerCase().includes('low') || item.fatContent.includes('1.') || item.fatContent.includes('3.'))) ||
-      (selectedFatContent === 'full' && (item.fatContent.toLowerCase().includes('whole') || item.fatContent.toLowerCase().includes('full') || item.fatContent.includes('7.') || item.fatContent.includes('4.8')));
+      (selectedFatContent === 'low' && (item.fatContent?.toLowerCase().includes('low') || item.fatContent?.includes('1.') || item.fatContent?.includes('3.'))) ||
+      (selectedFatContent === 'full' && (item.fatContent?.toLowerCase().includes('whole') || item.fatContent?.toLowerCase().includes('full') || item.fatContent?.includes('7.') || item.fatContent?.includes('4.8')));
 
-    return matchesSearch && matchesCategory && matchesBrand && matchesPrice && matchesRating && matchesStock && matchesFat;
+    return matchesSearch && matchesCategory && matchesBrand && matchesPrice && matchesRating && matchesStock && matchesFat && isApproved;
   }).sort((a, b) => {
     if (sortBy === 'price-low') return a.price - b.price;
     if (sortBy === 'price-high') return b.price - a.price;

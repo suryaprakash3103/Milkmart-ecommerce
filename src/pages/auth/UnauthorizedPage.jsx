@@ -13,6 +13,7 @@ export const UnauthorizedPage = () => {
   const getPortalHome = () => {
     if (role === 'admin') return '/admin';
     if (role === 'delivery') return '/partner';
+    if (role === 'seller') return '/seller/dashboard';
     return '/account';
   };
 
@@ -86,27 +87,34 @@ export const UnauthorizedPage = () => {
           <div style={{ fontSize: '0.8rem', fontWeight: '700', color: '#8E5A17', marginBottom: '8px' }}>
             Switch demo persona or return to your portal:
           </div>
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
+            <button
+              onClick={() => { switchRole('seller'); navigate('/seller'); }}
+              className="btn btn-primary btn-sm"
+              style={{ fontSize: '0.76rem' }}
+            >
+              🌾 Sign as Seller (Farmer)
+            </button>
             <button
               onClick={() => { switchRole('customer'); navigate('/account'); }}
               className="btn btn-outline-dark btn-sm"
-              style={{ flex: 1, fontSize: '0.76rem' }}
+              style={{ fontSize: '0.76rem' }}
             >
-              Sign as Customer
-            </button>
-            <button
-              onClick={() => { switchRole('delivery'); navigate('/partner'); }}
-              className="btn btn-outline-dark btn-sm"
-              style={{ flex: 1, fontSize: '0.76rem' }}
-            >
-              Sign as Partner
+              👤 Sign as Customer
             </button>
             <button
               onClick={() => { switchRole('admin'); navigate('/admin'); }}
               className="btn btn-outline-dark btn-sm"
-              style={{ flex: 1, fontSize: '0.76rem' }}
+              style={{ fontSize: '0.76rem' }}
             >
-              Sign as Admin
+              🛡️ Sign as Admin
+            </button>
+            <button
+              onClick={() => { switchRole('delivery'); navigate('/partner'); }}
+              className="btn btn-outline-dark btn-sm"
+              style={{ fontSize: '0.76rem' }}
+            >
+              🚚 Sign as Partner
             </button>
           </div>
         </div>

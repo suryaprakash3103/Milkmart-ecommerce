@@ -64,9 +64,30 @@ import { PartnerBottleLog } from './pages/delivery/PartnerBottleLog';
 import { DeliveryDashboard } from './pages/delivery/DeliveryDashboard';
 import { DeliveryOrders } from './pages/delivery/DeliveryOrders';
 
+// Seller / Producer Pages
+import { SellerLayout } from './pages/seller/SellerLayout';
+import { SellerDashboard } from './pages/seller/SellerDashboard';
+import { SellerProducts } from './pages/seller/SellerProducts';
+import { AddProduct } from './pages/seller/AddProduct';
+import { SellerInventory } from './pages/seller/SellerInventory';
+import { SellerBatches } from './pages/seller/SellerBatches';
+import { SellerOrders } from './pages/seller/SellerOrders';
+import { SellerOrderDetails } from './pages/seller/SellerOrderDetails';
+import { SellerSales } from './pages/seller/SellerSales';
+import { FarmProfile } from './pages/seller/FarmProfile';
+import { SellerNotifications } from './pages/seller/SellerNotifications';
+import { SellerSettings } from './pages/seller/SellerSettings';
+import { SellerPayouts } from './pages/seller/SellerPayouts';
+import { SellerLogin } from './pages/seller/SellerLogin';
+import { SellerRegister } from './pages/seller/SellerRegister';
+
+// Public Farm Store
+import { FarmStorePage } from './pages/customer/FarmStorePage';
+
 function AppContent() {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
+  const isSellerRoute = location.pathname.startsWith('/seller');
   const isDeliveryRoute = location.pathname.startsWith('/delivery') || location.pathname.startsWith('/partner');
 
   // Modals state
@@ -77,8 +98,8 @@ function AppContent() {
 
   return (
     <div className="app-container">
-      {/* Header only on non-admin routes */}
-      {!isAdminRoute && (
+      {/* Header only on non-admin & non-seller routes */}
+      {!isAdminRoute && !isSellerRoute && (
         <Navbar
           onOpenWallet={() => setIsWalletOpen(true)}
           onOpenAuth={(tab) => {
@@ -99,9 +120,14 @@ function AppContent() {
           <Route path="/wishlist" element={<WishlistPage />} />
           <Route path="/reviews" element={<ReviewsPage />} />
 
+          {/* Public Farm Storefront */}
+          <Route path="/farm/:farmId" element={<FarmStorePage />} />
+
           {/* Authentication & Shared Access Routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/seller/login" element={<SellerLogin />} />
+          <Route path="/seller/register" element={<SellerRegister />} />
           <Route path="/forgot-password" element={<ForgotPasswordFlow />} />
           <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
@@ -289,6 +315,30 @@ function AppContent() {
           />
           <Route path="/delivery/orders/:id" element={<OrderDetailPage />} />
 
+          {/* Seller / Farm Partner Portal (/seller/*) - Protected */}
+          <Route
+            path="/seller"
+            element={
+              <ProtectedRoute allowedRoles={['seller']}>
+                <SellerLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<SellerDashboard />} />
+            <Route path="dashboard" element={<SellerDashboard />} />
+            <Route path="products" element={<SellerProducts />} />
+            <Route path="products/new" element={<AddProduct />} />
+            <Route path="inventory" element={<SellerInventory />} />
+            <Route path="orders" element={<SellerOrders />} />
+            <Route path="orders/:id" element={<SellerOrderDetails />} />
+            <Route path="sales" element={<SellerSales />} />
+            <Route path="batches" element={<SellerBatches />} />
+            <Route path="farm" element={<FarmProfile />} />
+            <Route path="notifications" element={<SellerNotifications />} />
+            <Route path="settings" element={<SellerSettings />} />
+            <Route path="payouts" element={<SellerPayouts />} />
+          </Route>
+
           {/* 404 Catch-All */}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
@@ -301,7 +351,7 @@ function AppContent() {
       <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} initialTab={authTab} />
 
       {/* Footer on customer & delivery pages */}
-      {!isAdminRoute && <Footer />}
+      {!isAdminRoute && !isSellerRoute && <Footer />}
     </div>
   );
 }

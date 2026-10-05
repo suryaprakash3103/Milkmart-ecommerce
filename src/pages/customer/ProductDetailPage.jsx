@@ -12,7 +12,8 @@ import { SubscriptionModal } from '../../components/subscription/SubscriptionMod
 import { PurityCertificateModal } from '../../components/common/PurityCertificateModal';
 import { 
   Heart, ShoppingBag, Zap, Calendar, ShieldCheck, 
-  Truck, ThermometerSnowflake, RefreshCcw, Check, Sparkles, MessageSquarePlus, Star, Award 
+  Truck, ThermometerSnowflake, RefreshCcw, Check, Sparkles, 
+  MessageSquarePlus, Star, Award, MapPin, ExternalLink 
 } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 
@@ -358,6 +359,66 @@ export const ProductDetailPage = () => {
                 </button>
               </div>
             )}
+
+            {/* Verified Sourcing Farm Card */}
+            <div style={{
+              backgroundColor: '#FAF7F2',
+              border: '1.5px solid #E8E2D5',
+              borderRadius: '14px',
+              padding: '14px 18px',
+              marginTop: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px',
+              flexWrap: 'wrap'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '10px',
+                  backgroundColor: '#183626',
+                  color: '#FAF7F2',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <ShieldCheck size={22} color="#E8C582" />
+                </div>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', fontWeight: '800', color: '#196D3D' }}>Verified Sourcing Origin</span>
+                  </div>
+                  <div style={{ fontSize: '0.94rem', fontWeight: '800', color: '#183626' }}>
+                    {product.brand || product.farmName || 'Green Valley Dairy Farm'}
+                  </div>
+                  <div style={{ fontSize: '0.76rem', color: '#7E8B82', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <MapPin size={12} color="#A26D24" /> {product.farmLocation || product.farmOrigin || 'Coimbatore, Tamil Nadu'}
+                  </div>
+                </div>
+              </div>
+
+              <Link
+                to={`/farm/${product.farmId || (product.brand?.toLowerCase().includes('lakshmi') ? 'farm-sri-lakshmi' : (product.brand?.toLowerCase().includes('gir') ? 'farm-gir-amrit' : 'farm-green-valley'))}`}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  padding: '7px 12px',
+                  borderRadius: '8px',
+                  backgroundColor: '#FFFFFF',
+                  color: '#183626',
+                  border: '1px solid #D5CBBB',
+                  fontSize: '0.78rem',
+                  fontWeight: '700',
+                  textDecoration: 'none'
+                }}
+              >
+                Visit Farm Store <ExternalLink size={12} />
+              </Link>
+            </div>
           </div>
         </div>
 

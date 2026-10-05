@@ -380,3 +380,25 @@ img {
   }
 }
 
+/* Responsive Seller Portal */
+@media (max-width: 900px) {
+  .seller-mobile-toggle {
+    display: inline-flex !important;
+  }
+  .seller-sidebar {
+    position: fixed !important;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    transform: translateX(-100%) !important;
+  }
+  .seller-sidebar-open {
+    position: fixed !important;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    transform: translateX(0) !important;
+  }
+}
+
+

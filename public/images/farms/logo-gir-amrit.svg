@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <rect width="200" height="200" rx="36" fill="#A26D24"/>
+  <circle cx="100" cy="92" r="70" fill="#FAF7F2"/>
+  <!-- Gir cow head -->
+  <path d="M58 64 C44 56 36 66 46 76 C52 80 60 78 66 74 Z" fill="#8B4A1C"/>
+  <path d="M142 64 C156 56 164 66 154 76 C148 80 140 78 134 74 Z" fill="#8B4A1C"/>
+  <path d="M66 52 C60 36 72 30 80 44" stroke="#183626" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <path d="M134 52 C140 36 128 30 120 44" stroke="#183626" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <path d="M70 58 C70 46 130 46 130 58 L124 112 C120 128 80 128 76 112 Z" fill="#B5652B"/>
+  <ellipse cx="100" cy="116" rx="20" ry="13" fill="#E8C582"/>
+  <circle cx="92" cy="116" r="3" fill="#183626"/><circle cx="108" cy="116" r="3" fill="#183626"/>
+  <circle cx="84" cy="78" r="4" fill="#183626"/><circle cx="116" cy="78" r="4" fill="#183626"/>
+  <text x="100" y="186" text-anchor="middle" font-family="Georgia, serif" font-size="20" font-weight="700" fill="#FAF7F2" letter-spacing="2">GIR AMRIT</text>
+</svg>

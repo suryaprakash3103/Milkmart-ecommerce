@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <rect width="200" height="200" rx="36" fill="#FAF7F2" stroke="#183626" stroke-width="6"/>
+  <circle cx="100" cy="88" r="60" fill="#E8C582"/>
+  <!-- lotus -->
+  <path d="M100 50 C88 70 88 96 100 116 C112 96 112 70 100 50 Z" fill="#183626"/>
+  <path d="M100 116 C82 108 66 92 62 72 C80 74 94 90 100 116 Z" fill="#2F5D41"/>
+  <path d="M100 116 C118 108 134 92 138 72 C120 74 106 90 100 116 Z" fill="#2F5D41"/>
+  <path d="M60 124 Q100 140 140 124" stroke="#183626" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <text x="100" y="172" text-anchor="middle" font-family="Georgia, serif" font-size="19" font-weight="700" fill="#183626" letter-spacing="2">SRI LAKSHMI</text>
+</svg>

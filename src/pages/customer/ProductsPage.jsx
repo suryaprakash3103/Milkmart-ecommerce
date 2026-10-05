@@ -68,11 +68,11 @@ export const ProductsPage = () => {
   };
 
   const brands = [
+    'Green Valley Dairy Farm',
+    'Sri Lakshmi Organic Farm',
+    'Gir Amrit Organic Gaushala',
     'MilkMart Pure Farm',
-    'Gir Heritage',
-    'Malnad Heritage Dairy',
-    'Bilona Traditions',
-    'MilkMart Daily'
+    'Bilona Traditions'
   ];
 
   return (
@@ -201,9 +201,9 @@ export const ProductsPage = () => {
               </div>
             </div>
 
-            {/* Brand Filter */}
+            {/* Brand / Farm Filter */}
             <div style={{ marginBottom: '22px', borderTop: '1px solid #F1EDE3', paddingTop: '16px' }}>
-              <h4 style={{ fontSize: '0.9rem', color: '#183626', marginBottom: '10px' }}>Dairy Brand</h4>
+              <h4 style={{ fontSize: '0.9rem', color: '#183626', marginBottom: '10px' }}>Partner Dairy Farms</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', cursor: 'pointer' }}>
                   <input
@@ -212,7 +212,7 @@ export const ProductsPage = () => {
                     checked={selectedBrand === 'all'}
                     onChange={() => setSelectedBrand('all')}
                   />
-                  <span>All Brands</span>
+                  <span>All Verified Farms</span>
                 </label>
                 {brands.map((b) => (
                   <label key={b} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', cursor: 'pointer' }}>

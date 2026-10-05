@@ -7,7 +7,7 @@ import { useProducts } from '../../context/ProductContext';
 import { 
   Search, Heart, ShoppingBag, User, Menu, X, 
   Wallet, ShieldCheck, Sparkles, LogOut, MapPin, 
-  Package, Calendar, ChevronRight 
+  Package, Calendar, ChevronRight, Truck, Award, ChevronDown
 } from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
 import { WalletIcon } from './WalletIcon';
@@ -68,8 +68,16 @@ export const Navbar = ({ onOpenWallet, onOpenAuth }) => {
     { name: "Categories", path: "/#categories" },
     { name: "Morning Subscriptions", path: "/account/subscriptions", highlight: true },
     { name: "Offers & Bundles", path: "/products?filter=offers" },
-    { name: "Track Order", path: "/account/orders" }
+    { name: "Track Order", path: "/account/orders" },
+    { name: "🌾 Sell on MilkMart", path: "/seller/login" }
   ];
+
+  const getRoleDashboardPath = (userRole) => {
+    if (userRole === 'admin') return '/admin';
+    if (userRole === 'delivery') return '/partner';
+    if (userRole === 'seller') return '/seller';
+    return '/account';
+  };
 
   return (
     <header style={{
@@ -149,6 +157,22 @@ export const Navbar = ({ onOpenWallet, onOpenAuth }) => {
               }}
             >
               🛡️ Admin (Aditi)
+            </button>
+
+            <button
+              onClick={() => { switchRole('seller'); navigate('/seller'); }}
+              style={{
+                background: role === 'seller' ? '#E8C582' : 'rgba(255, 255, 255, 0.1)',
+                color: role === 'seller' ? '#183626' : '#FAF7F2',
+                border: 'none',
+                padding: '2px 8px',
+                borderRadius: '12px',
+                fontSize: '0.72rem',
+                fontWeight: '700',
+                cursor: 'pointer'
+              }}
+            >
+              🌾 Seller (Devendra)
             </button>
 
             {isAuthenticated ? (
@@ -396,135 +420,261 @@ export const Navbar = ({ onOpenWallet, onOpenAuth }) => {
             </Link>
           ) : (
             <div ref={profileMenuRef} style={{ position: 'relative' }}>
-              <button
-                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+              {/* Profile Pill with Direct Link & Dropdown Toggle */}
+              <div
                 style={{
                   height: '40px',
-                  borderRadius: '20px',
+                  borderRadius: '22px',
                   backgroundColor: '#FFFFFF',
                   border: '1.5px solid #E6DEC9',
-                  display: 'flex',
+                  display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '8px',
-                  padding: '0 12px',
-                  cursor: 'pointer',
-                  color: '#183626'
+                  boxShadow: '0 2px 8px rgba(24, 54, 38, 0.04)',
+                  overflow: 'hidden'
                 }}
-                title="Profile & Settings"
               >
-                <User size={17} />
-                <span style={{ fontSize: '0.82rem', fontWeight: '700', maxWidth: '90px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {activeUser.name?.split(' ')[0]}
-                </span>
-                <span style={{
-                  fontSize: '0.68rem',
-                  textTransform: 'uppercase',
-                  fontWeight: '800',
-                  padding: '2px 6px',
-                  borderRadius: '6px',
-                  backgroundColor: role === 'admin' ? '#EBF4F9' : role === 'delivery' ? '#E8F5EE' : '#FDF4E3',
-                  color: role === 'admin' ? '#0E587B' : role === 'delivery' ? '#196D3D' : '#8E5A17'
-                }}>
-                  {role}
-                </span>
-              </button>
+                {/* Clicking pill navigates straight to user dashboard */}
+                <Link
+                  to={getRoleDashboardPath(role)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '0 10px 0 12px',
+                    textDecoration: 'none',
+                    color: '#183626',
+                    height: '100%'
+                  }}
+                  title={`Open ${role === 'seller' ? 'Seller Hub' : role === 'delivery' ? 'Fleet Dashboard' : role === 'admin' ? 'Admin Hub' : 'My Account'}`}
+                >
+                  <User size={17} color="#183626" />
+                  <span style={{ fontSize: '0.84rem', fontWeight: '700', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {activeUser?.name?.split(' ')[0] || 'User'}
+                  </span>
+                  <span style={{
+                    fontSize: '0.68rem',
+                    textTransform: 'uppercase',
+                    fontWeight: '800',
+                    padding: '2px 7px',
+                    borderRadius: '6px',
+                    backgroundColor: role === 'admin' ? '#EBF4F9' : role === 'delivery' ? '#E8F5EE' : role === 'seller' ? '#FEF8EB' : '#FDF4E3',
+                    color: role === 'admin' ? '#0E587B' : role === 'delivery' ? '#196D3D' : role === 'seller' ? '#A26D24' : '#8E5A17'
+                  }}>
+                    {role}
+                  </span>
+                </Link>
+
+                {/* Dropdown Chevron Toggle */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsProfileMenuOpen(!isProfileMenuOpen);
+                  }}
+                  style={{
+                    height: '100%',
+                    padding: '0 9px',
+                    backgroundColor: isProfileMenuOpen ? '#FAF5EE' : 'transparent',
+                    border: 'none',
+                    borderLeft: '1px solid #EFE8D8',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#55685C'
+                  }}
+                  title="Profile Menu & Portals"
+                >
+                  <ChevronDown
+                    size={15}
+                    style={{
+                      transform: isProfileMenuOpen ? 'rotate(180deg)' : 'none',
+                      transition: 'transform 0.15s ease'
+                    }}
+                  />
+                </button>
+              </div>
 
               {isProfileMenuOpen && (
                 <div style={{
                   position: 'absolute',
-                  top: '110%',
+                  top: '115%',
                   right: 0,
-                  width: '260px',
+                  width: '270px',
                   backgroundColor: '#FFFFFF',
                   borderRadius: '16px',
-                  border: '1px solid #E6DEC9',
-                  boxShadow: '0 12px 32px rgba(24, 54, 38, 0.15)',
+                  border: '1.5px solid #E6DEC9',
+                  boxShadow: '0 14px 36px rgba(24, 54, 38, 0.15)',
                   padding: '8px 0',
-                  zIndex: 100,
-                  animation: 'slideUp 0.2s ease-out'
+                  zIndex: 9999,
+                  animation: 'slideUp 0.18s ease-out'
                 }}>
-                  <div style={{ padding: '12px 16px', borderBottom: '1px solid #F1EDE3' }}>
-                    <div style={{ fontWeight: '700', color: '#183626', fontSize: '0.92rem' }}>{activeUser.name}</div>
-                    <div style={{ fontSize: '0.78rem', color: '#798C80' }}>{activeUser.email}</div>
-                    {role === 'customer' && (
-                      <div style={{
-                        marginTop: '6px',
-                        fontSize: '0.75rem',
-                        color: '#8E5A17',
-                        background: '#FDF4E3',
-                        padding: '2px 8px',
-                        borderRadius: '6px',
-                        display: 'inline-block',
-                        fontWeight: '600'
-                      }}>
-                        Wallet: ₹{activeUser.walletBalance || 0}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Customer Links */}
+                  {/* Top user summary card */}
                   <Link
-                    to="/account"
+                    to={getRoleDashboardPath(role)}
                     onClick={() => setIsProfileMenuOpen(false)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 16px', fontSize: '0.88rem', color: '#183626', textDecoration: 'none' }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#FAF7F2'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FFFFFF'}
+                    style={{
+                      display: 'block',
+                      padding: '12px 16px',
+                      borderBottom: '1px solid #F1EDE3',
+                      textDecoration: 'none',
+                      backgroundColor: '#FAF7F2'
+                    }}
                   >
-                    <User size={16} /> Customer Dashboard
+                    <div style={{ fontWeight: '700', color: '#183626', fontSize: '0.94rem' }}>{activeUser?.name}</div>
+                    <div style={{ fontSize: '0.78rem', color: '#798C80' }}>{activeUser?.email}</div>
+                    <div style={{
+                      marginTop: '6px',
+                      fontSize: '0.75rem',
+                      color: '#196D3D',
+                      fontWeight: '700',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}>
+                      Go to {role === 'seller' ? 'Seller Hub' : role === 'delivery' ? 'Fleet Dashboard' : role === 'admin' ? 'Admin Hub' : 'My Account'} →
+                    </div>
                   </Link>
 
-                  <Link
-                    to="/account/orders"
-                    onClick={() => setIsProfileMenuOpen(false)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 16px', fontSize: '0.88rem', color: '#183626', textDecoration: 'none' }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#FAF7F2'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FFFFFF'}
-                  >
-                    <Package size={16} /> Orders &amp; Invoices
-                  </Link>
+                  {/* Customer specific shortcuts */}
+                  {role === 'customer' && (
+                    <>
+                      <Link
+                        to="/account/orders"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                        style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 16px', fontSize: '0.86rem', color: '#183626', textDecoration: 'none' }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#FAF7F2'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FFFFFF'}
+                      >
+                        <Package size={16} color="#183626" /> Orders &amp; Invoices
+                      </Link>
 
-                  <Link
-                    to="/account/subscriptions"
-                    onClick={() => setIsProfileMenuOpen(false)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 16px', fontSize: '0.88rem', color: '#183626', textDecoration: 'none' }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#FAF7F2'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FFFFFF'}
-                  >
-                    <Calendar size={16} /> Milk Subscriptions
-                  </Link>
+                      <Link
+                        to="/account/subscriptions"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                        style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 16px', fontSize: '0.86rem', color: '#183626', textDecoration: 'none' }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#FAF7F2'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FFFFFF'}
+                      >
+                        <Calendar size={16} color="#183626" /> Daily Subscriptions
+                      </Link>
 
-                  <Link
-                    to="/account/wallet"
-                    onClick={() => setIsProfileMenuOpen(false)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 16px', fontSize: '0.88rem', color: '#183626', textDecoration: 'none' }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#FAF7F2'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FFFFFF'}
-                  >
-                    <Wallet size={16} /> Wallet &amp; Bottle Refunds
-                  </Link>
+                      <Link
+                        to="/account/wallet"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                        style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 16px', fontSize: '0.86rem', color: '#183626', textDecoration: 'none' }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#FAF7F2'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FFFFFF'}
+                      >
+                        <Wallet size={16} color="#183626" /> Wallet (₹{activeUser?.walletBalance || 0})
+                      </Link>
+
+                      <Link
+                        to="/account/addresses"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                        style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 16px', fontSize: '0.86rem', color: '#183626', textDecoration: 'none' }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#FAF7F2'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FFFFFF'}
+                      >
+                        <MapPin size={16} color="#183626" /> Addresses &amp; Instructions
+                      </Link>
+                    </>
+                  )}
+
+                  {/* Seller specific shortcuts */}
+                  {role === 'seller' && (
+                    <>
+                      <Link
+                        to="/seller/products"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                        style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 16px', fontSize: '0.86rem', color: '#183626', textDecoration: 'none' }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#FAF7F2'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FFFFFF'}
+                      >
+                        <Package size={16} color="#183626" /> My Dairy SKUs &amp; Stock
+                      </Link>
+
+                      <Link
+                        to="/seller/batches"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                        style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 16px', fontSize: '0.86rem', color: '#183626', textDecoration: 'none' }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#FAF7F2'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FFFFFF'}
+                      >
+                        <Award size={16} color="#A26D24" /> Batches &amp; Purity Lab Certs
+                      </Link>
+
+                      <Link
+                        to="/seller/payouts"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                        style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 16px', fontSize: '0.86rem', color: '#183626', textDecoration: 'none' }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#FAF7F2'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FFFFFF'}
+                      >
+                        <Wallet size={16} color="#183626" /> Settlement Payouts (₹{activeUser?.walletBalance || 0})
+                      </Link>
+                    </>
+                  )}
 
                   <div style={{ borderTop: '1px solid #F1EDE3', margin: '6px 0' }} />
 
-                  {/* Portal Direct Switches */}
-                  <Link
-                    to="/partner"
-                    onClick={() => setIsProfileMenuOpen(false)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 16px', fontSize: '0.84rem', color: '#196D3D', textDecoration: 'none' }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#E8F5EE'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FFFFFF'}
-                  >
-                    <Truck size={16} /> Delivery Fleet Portal
-                  </Link>
+                  {/* Switch Portal Section */}
+                  <div style={{ padding: '4px 16px 2px 16px', fontSize: '0.72rem', color: '#798C80', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    Switch System Portal:
+                  </div>
 
-                  <Link
-                    to="/admin"
-                    onClick={() => setIsProfileMenuOpen(false)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 16px', fontSize: '0.84rem', color: '#0E587B', textDecoration: 'none' }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#EBF4F9'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FFFFFF'}
+                  <button
+                    onClick={() => {
+                      setIsProfileMenuOpen(false);
+                      switchRole('customer');
+                      navigate('/account');
+                    }}
+                    style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 16px', fontSize: '0.84rem', color: '#183626', cursor: 'pointer' }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#FAF7F2'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                   >
-                    <ShieldCheck size={16} /> Admin Operations Hub
-                  </Link>
+                    <User size={15} color="#183626" /> Customer Portal
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setIsProfileMenuOpen(false);
+                      switchRole('seller');
+                      navigate('/seller');
+                    }}
+                    style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 16px', fontSize: '0.84rem', color: '#A26D24', cursor: 'pointer' }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#FEF8EB'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
+                    <Award size={15} color="#A26D24" /> Farm Producer Hub
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setIsProfileMenuOpen(false);
+                      switchRole('delivery');
+                      navigate('/partner');
+                    }}
+                    style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 16px', fontSize: '0.84rem', color: '#196D3D', cursor: 'pointer' }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#E8F5EE'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
+                    <Truck size={15} color="#196D3D" /> Delivery Fleet Portal
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setIsProfileMenuOpen(false);
+                      switchRole('admin');
+                      navigate('/admin');
+                    }}
+                    style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 16px', fontSize: '0.84rem', color: '#0E587B', cursor: 'pointer' }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#EBF4F9'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
+                    <ShieldCheck size={15} color="#0E587B" /> Admin Operations Hub
+                  </button>
 
                   <div style={{ borderTop: '1px solid #F1EDE3', margin: '6px 0' }} />
 
@@ -536,9 +686,9 @@ export const Navbar = ({ onOpenWallet, onOpenAuth }) => {
                     }}
                     style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 16px', fontSize: '0.84rem', color: '#B2341A', cursor: 'pointer' }}
                     onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#FDE8E4'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FFFFFF'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                   >
-                    <LogOut size={16} /> Sign Out
+                    <LogOut size={15} color="#B2341A" /> Sign Out
                   </div>
                 </div>
               )}
@@ -648,7 +798,7 @@ export const Navbar = ({ onOpenWallet, onOpenAuth }) => {
               className="btn btn-primary btn-sm"
               style={{ flex: 1 }}
             >
-              Wallet (₹{currentUser.walletBalance})
+              Wallet (₹{currentUser?.walletBalance || 0})
             </button>
             <button
               onClick={() => { setIsMobileMenuOpen(false); setIsCartOpen(true); }}

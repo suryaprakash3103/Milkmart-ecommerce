@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { BrandLogo } from '../../components/common/BrandLogo';
 import { 
-  Lock, Mail, User, ShieldCheck, Truck, 
+  Lock, Mail, User, ShieldCheck, Truck, Award, 
   ArrowRight, Eye, EyeOff, Sparkles, CheckCircle2, AlertCircle 
 } from 'lucide-react';
 
@@ -31,6 +31,7 @@ export const LoginPage = () => {
     }
     if (role === 'admin') return '/admin';
     if (role === 'delivery') return '/partner';
+    if (role === 'seller') return '/seller';
     return '/account';
   };
 
@@ -43,6 +44,9 @@ export const LoginPage = () => {
     } else if (role === 'delivery') {
       setEmail('ramesh.delivery@milkmart.farm');
       setPassword('partner123');
+    } else if (role === 'seller') {
+      setEmail('farmer.patel@milkmart.farm');
+      setPassword('farmer123');
     } else {
       setEmail('surya.prakash@example.com');
       setPassword('password123');
@@ -75,6 +79,9 @@ export const LoginPage = () => {
     } else if (role === 'delivery') {
       showToast("Signed in as Ramesh Kumar (Delivery Fleet)");
       navigate('/partner');
+    } else if (role === 'seller') {
+      showToast("Signed in as Devendra Patel (Farm Producer)");
+      navigate('/seller');
     } else {
       showToast("Signed in as Surya Prakash (Customer)");
       navigate('/account');
@@ -137,7 +144,7 @@ export const LoginPage = () => {
           }}>
             <Sparkles size={14} color="#A26D24" /> Instant 1-Click Demo Evaluation:
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
             <button
               type="button"
               onClick={() => handleQuickDemo('customer')}
@@ -151,7 +158,7 @@ export const LoginPage = () => {
                 border: '1px solid #183626',
                 backgroundColor: '#FFFFFF',
                 color: '#183626',
-                fontSize: '0.75rem',
+                fontSize: '0.72rem',
                 fontWeight: '700',
                 cursor: 'pointer'
               }}
@@ -171,12 +178,32 @@ export const LoginPage = () => {
                 border: '1px solid #196D3D',
                 backgroundColor: '#FFFFFF',
                 color: '#196D3D',
-                fontSize: '0.75rem',
+                fontSize: '0.72rem',
                 fontWeight: '700',
                 cursor: 'pointer'
               }}
             >
               <Truck size={12} /> Partner
+            </button>
+            <button
+              type="button"
+              onClick={() => handleQuickDemo('seller')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '5px',
+                padding: '6px 4px',
+                borderRadius: '8px',
+                border: '1px solid #A26D24',
+                backgroundColor: '#FFFFFF',
+                color: '#A26D24',
+                fontSize: '0.72rem',
+                fontWeight: '700',
+                cursor: 'pointer'
+              }}
+            >
+              <Award size={12} /> Seller
             </button>
             <button
               type="button"
@@ -191,7 +218,7 @@ export const LoginPage = () => {
                 border: '1px solid #0E587B',
                 backgroundColor: '#FFFFFF',
                 color: '#0E587B',
-                fontSize: '0.75rem',
+                fontSize: '0.72rem',
                 fontWeight: '700',
                 cursor: 'pointer'
               }}
@@ -217,10 +244,10 @@ export const LoginPage = () => {
               onClick={() => handleTabChange('customer')}
               style={{
                 flex: 1,
-                padding: '8px 4px',
+                padding: '8px 2px',
                 borderRadius: '8px',
                 border: 'none',
-                fontSize: '0.82rem',
+                fontSize: '0.78rem',
                 fontWeight: activeTab === 'customer' ? '700' : '600',
                 backgroundColor: activeTab === 'customer' ? '#183626' : 'transparent',
                 color: activeTab === 'customer' ? '#FAF7F2' : '#55685C',
@@ -235,10 +262,10 @@ export const LoginPage = () => {
               onClick={() => handleTabChange('delivery')}
               style={{
                 flex: 1,
-                padding: '8px 4px',
+                padding: '8px 2px',
                 borderRadius: '8px',
                 border: 'none',
-                fontSize: '0.82rem',
+                fontSize: '0.78rem',
                 fontWeight: activeTab === 'delivery' ? '700' : '600',
                 backgroundColor: activeTab === 'delivery' ? '#183626' : 'transparent',
                 color: activeTab === 'delivery' ? '#FAF7F2' : '#55685C',
@@ -246,17 +273,35 @@ export const LoginPage = () => {
                 transition: 'all 0.15s ease'
               }}
             >
-              Delivery Fleet
+              Partner
+            </button>
+            <button
+              type="button"
+              onClick={() => handleTabChange('seller')}
+              style={{
+                flex: 1,
+                padding: '8px 2px',
+                borderRadius: '8px',
+                border: 'none',
+                fontSize: '0.78rem',
+                fontWeight: activeTab === 'seller' ? '700' : '600',
+                backgroundColor: activeTab === 'seller' ? '#183626' : 'transparent',
+                color: activeTab === 'seller' ? '#FAF7F2' : '#55685C',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              Farm Seller
             </button>
             <button
               type="button"
               onClick={() => handleTabChange('admin')}
               style={{
                 flex: 1,
-                padding: '8px 4px',
+                padding: '8px 2px',
                 borderRadius: '8px',
                 border: 'none',
-                fontSize: '0.82rem',
+                fontSize: '0.78rem',
                 fontWeight: activeTab === 'admin' ? '700' : '600',
                 backgroundColor: activeTab === 'admin' ? '#183626' : 'transparent',
                 color: activeTab === 'admin' ? '#FAF7F2' : '#55685C',

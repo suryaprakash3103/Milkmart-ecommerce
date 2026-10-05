@@ -8,7 +8,8 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
 
   if (!isAuthenticated) {
     // Redirect to login preserving the attempted page
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    const isSeller = allowedRoles && allowedRoles.includes('seller');
+    return <Navigate to={isSeller ? "/seller/login" : "/login"} state={{ from: location }} replace />;
   }
 
   if (allowedRoles && allowedRoles.length > 0 && !allowedRoles.includes(role)) {
