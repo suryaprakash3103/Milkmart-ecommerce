@@ -1,9 +1,11 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { db } from './db/database.js';
+import { connectDB, getMongoStatus } from './config/db.js';
 
 // Route imports
 import authRoutes from './routes/authRoutes.js';
@@ -25,6 +27,9 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 5050;
 
+// Connect to MongoDB
+connectDB();
+
 // Middleware
 app.use(cors({
   origin: true,
@@ -38,20 +43,41 @@ app.use(express.urlencoded({ extended: true, limit: '25mb' }));
 const uploadsDir = path.join(__dirname, '..', 'public', 'uploads');
 app.use('/uploads', express.static(uploadsDir));
 
-// System Health Check
+// System & Database Health Check
 app.get('/api/health', (req, res) => {
   return res.json({
     status: 'online',
-    platform: 'MilkMart Pure Farmstead API',
+    platform: 'MilkMart Pure Farmstead Fullstack API',
     uptime: process.uptime(),
     timestamp: new Date().toISOString(),
     database: {
-      users: db.get('users').length,
-      products: db.get('products').length,
-      farms: db.get('farms').length,
-      orders: db.get('orders').length,
-      subscriptions: db.get('subscriptions').length,
-      batches: db.get('batches').length
+      type: 'MongoDB (with local persistence fallback)',
+      mongodb: getMongoStatus(),
+      collections: {
+        users: db.get('users').length,
+        products: db.get('products').length,
+        farms: db.get('farms').length,
+        orders: db.get('orders').length,
+        subscriptions: db.get('subscriptions').length,
+        batches: db.get('batches').length
+      }
+    }
+  });
+});
+
+// Database Status Endpoint
+app.get('/api/database/status', (req, res) => {
+  const mongo = getMongoStatus();
+  return res.json({
+    success: true,
+    mongodb: mongo,
+    syncMode: mongo.connected ? 'Active MongoDB Primary' : 'Local Disk-Persisted Fallback',
+    metrics: {
+      totalUsers: db.get('users').length,
+      totalProducts: db.get('products').length,
+      totalFarms: db.get('farms').length,
+      totalOrders: db.get('orders').length,
+      totalSubscriptions: db.get('subscriptions').length
     }
   });
 });
@@ -84,6 +110,7 @@ const server = app.listen(PORT, () => {
   console.log(`\n======================================================`);
   console.log(`🥛 MilkMart Backend API Server running on port ${PORT}`);
   console.log(`📡 Health Check: http://localhost:${PORT}/api/health`);
+  console.log(`🍃 Database Status: http://localhost:${PORT}/api/database/status`);
   console.log(`======================================================\n`);
 });
 

@@ -31,7 +31,21 @@ export const AdminDashboard = () => {
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <span style={{
+            backgroundColor: '#DCFCE7',
+            color: '#166534',
+            padding: '6px 14px',
+            borderRadius: '20px',
+            fontSize: '0.82rem',
+            fontWeight: '700',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#22C55E' }}></span>
+            MongoDB Fullstack Engine
+          </span>
           <span style={{
             backgroundColor: '#E8F5EE',
             color: '#196D3D',

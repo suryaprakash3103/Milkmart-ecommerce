@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import mongoose from 'mongoose';
 
 // Import seed datasets
 import { mockUsers } from '../../src/data/mockUsers.js';
@@ -218,6 +219,28 @@ class Database {
     fs.renameSync(tmpPath, filePath);
   }
 
+  async getModel(collection) {
+    if (mongoose.connection.readyState !== 1) return null;
+    try {
+      const modelMap = {
+        users: () => import('../models/User.js').then(m => m.User),
+        products: () => import('../models/Product.js').then(m => m.Product),
+        farms: () => import('../models/Farm.js').then(m => m.Farm),
+        orders: () => import('../models/Order.js').then(m => m.Order),
+        subscriptions: () => import('../models/Subscription.js').then(m => m.Subscription),
+        batches: () => import('../models/Batch.js').then(m => m.Batch),
+        reviews: () => import('../models/Review.js').then(m => m.Review),
+        notifications: () => import('../models/Notification.js').then(m => m.Notification)
+      };
+      if (modelMap[collection]) {
+        return await modelMap[collection]();
+      }
+    } catch (e) {
+      // Model loading fallback
+    }
+    return null;
+  }
+
   get(collection) {
     if (!this.memoryStore[collection]) {
       this.memoryStore[collection] = [];
@@ -246,6 +269,18 @@ class Database {
     const list = this.get(collection);
     const updated = atBeginning ? [item, ...list] : [...list, item];
     this.set(collection, updated);
+
+    // Sync to MongoDB asynchronously if connected
+    this.getModel(collection).then(Model => {
+      if (Model) {
+        Model.create(item).catch(err => {
+          if (err.code === 11000) {
+            Model.updateOne({ id: item.id }, item).catch(() => {});
+          }
+        });
+      }
+    }).catch(() => {});
+
     return item;
   }
 
@@ -255,6 +290,14 @@ class Database {
     if (idx >= 0) {
       list[idx] = { ...list[idx], ...updates };
       this.set(collection, list);
+
+      // Sync update to MongoDB
+      this.getModel(collection).then(Model => {
+        if (Model) {
+          Model.updateOne({ id }, { $set: updates }).catch(() => {});
+        }
+      }).catch(() => {});
+
       return list[idx];
     }
     return null;
@@ -264,6 +307,14 @@ class Database {
     const list = this.get(collection);
     const filtered = list.filter(item => item.id !== id);
     this.set(collection, filtered);
+
+    // Sync delete to MongoDB
+    this.getModel(collection).then(Model => {
+      if (Model) {
+        Model.deleteOne({ id }).catch(() => {});
+      }
+    }).catch(() => {});
+
     return true;
   }
 }
