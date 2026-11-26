@@ -49,43 +49,62 @@ MilkMart is a modern, responsive, frontend-only dairy subscription e-commerce pl
 
 ---
 
+## 🛠️ Fullstack Architecture & Tech Stack
+- **Frontend**: React 18, Vite 6, React Router DOM v6, Lucide React, Canvas-Confetti
+- **Backend**: Node.js, Express.js REST API, CORS, Morgan, Multer, JSON Web Tokens (JWT), BcryptJS
+- **Persistence**: Atomic file-persisted JSON database (`server/data/*.json`)
+- **Portals**:
+  - 🛒 **Customer Storefront**: `http://localhost:3000/`
+  - 🌾 **Farmer / Producer Portal**: `http://localhost:3000/seller/dashboard`
+  - 🛡️ **Admin Operations Hub**: `http://localhost:3000/admin`
+  - 🚚 **Morning Delivery Partner**: `http://localhost:3000/partner`
+  - 📡 **Backend REST API**: `http://localhost:5000/api` (Health: `/api/health`)
+
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites
 - [Node.js](https://nodejs.org/) (v18.0 or higher recommended)
-- `npm` or `yarn`
+- `npm`
 
-### Installation
+### Installation & Launch
 ```bash
-# Clone the repository
-git clone https://github.com/<your-username>/milkmart-ecommerce.git
-
-# Navigate into the project directory
-cd milkmart-ecommerce
-
-# Install dependencies
+# 1. Install dependencies
 npm install
 
-# Start the development server
+# 2. Run both Backend (Express on port 5000) and Frontend (Vite on port 3000) concurrently
 npm run dev
 ```
 
-The application will start on `http://localhost:3000/`.
+The application will start on `http://localhost:3000/` with proxying to `http://localhost:5000/` for `/api` and `/uploads`.
 
-### Build for Production
+### Production Build
 ```bash
 npm run build
 ```
-The optimized production bundle will be generated in the `dist/` directory.
 
 ---
 
-## 🛠️ Tech Stack
-- **Framework**: React 18
-- **Build Tool**: Vite 6
-- **Routing**: React Router DOM v6
-- **Icons**: Lucide React
-- **Celebrations**: Canvas-Confetti
+## 📡 REST API Reference
+
+| Endpoint | Method | Role | Description |
+|---|---|---|---|
+| `/api/auth/login` | POST | Public | Authenticate user & issue JWT |
+| `/api/auth/register` | POST | Public | Register customer, farmer/seller, or driver |
+| `/api/auth/me` | GET | Authenticated | Current user profile & wallet balance |
+| `/api/products` | GET / POST | Public / Seller | Catalog search, category filter, SKU creation |
+| `/api/products/:id/approval` | PATCH | Admin | Quality approval / rejection |
+| `/api/products/:id/stock` | PATCH | Seller / Admin | Real-time stock adjustment |
+| `/api/farms` | GET / PUT | Public / Seller | Farm profiles, cattle headcount, photo gallery |
+| `/api/orders` | GET / POST | Customer / Seller | Doorstep orders, wallet payments, inventory reserves |
+| `/api/orders/:id/status` | PATCH | Seller / Delivery | Stepper order progression |
+| `/api/subscriptions` | GET / POST / PATCH | Customer | Daily recurring morning milk subscriptions |
+| `/api/delivery/route` | GET | Delivery | Route 4B morning manifest |
+| `/api/delivery/complete` | POST | Delivery | Doorstep drop proof & ₹10/bottle loop credit |
+| `/api/wallet` | GET / POST | Customer | Balance check & instant UPI top-up |
+| `/api/batches` | GET / POST | Seller / Public | Morning milking batches & NABL lab certificates |
+| `/api/upload` | POST | Authenticated | Multer image file upload |
 
 ---
 

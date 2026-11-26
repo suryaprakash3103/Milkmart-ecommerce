@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { initialSubscriptions } from '../data/mockSubscriptions';
 import { useToast } from './ToastContext';
+import { api } from '../services/api';
 
 const SubscriptionContext = createContext();
 
@@ -12,11 +13,27 @@ export const SubscriptionProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : initialSubscriptions;
   });
 
+  const refreshSubscriptions = useCallback(async () => {
+    try {
+      const res = await api.subscriptions.getAll();
+      if (res?.success && Array.isArray(res.subscriptions) && res.subscriptions.length > 0) {
+        setSubscriptions(res.subscriptions);
+        localStorage.setItem('milkmart_subscriptions', JSON.stringify(res.subscriptions));
+      }
+    } catch (e) {
+      console.warn("Could not sync subscriptions from backend, using local store:", e.message);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshSubscriptions();
+  }, [refreshSubscriptions]);
+
   useEffect(() => {
     localStorage.setItem('milkmart_subscriptions', JSON.stringify(subscriptions));
   }, [subscriptions]);
 
-  const addSubscription = ({
+  const addSubscription = async ({
     product,
     size = "1 L",
     quantity = 1,
@@ -26,16 +43,36 @@ export const SubscriptionProvider = ({ children }) => {
     instructions = "Leave inside insulated pouch",
     customSchedule = null
   }) => {
+    try {
+      const res = await api.subscriptions.create({
+        product,
+        size,
+        quantity,
+        frequency,
+        timeSlot,
+        deliveryAddress,
+        instructions,
+        customSchedule
+      });
+      if (res?.success && res.subscription) {
+        setSubscriptions(prev => [res.subscription, ...prev]);
+        showToast(`Subscribed to '${product.name}' (${frequency})! Saved 10% daily.`);
+        return res.subscription;
+      }
+    } catch (e) {
+      console.warn("Backend addSubscription failed, creating locally:", e.message);
+    }
+
+    // Local fallback
     const subNum = Math.floor(1000 + Math.random() * 9000);
     const id = `SUB-${subNum}`;
     
-    // Find variant price
     let unitPrice = product.price;
     if (product.availableSizes) {
       const variant = product.availableSizes.find(v => v.size === size);
       if (variant) unitPrice = variant.price;
     }
-    const discountedPrice = Number((unitPrice * 0.9).toFixed(1)); // 10% off subscription saving
+    const discountedPrice = Number((unitPrice * 0.9).toFixed(1));
 
     const newSub = {
       id,
@@ -64,21 +101,39 @@ export const SubscriptionProvider = ({ children }) => {
     return newSub;
   };
 
-  const pauseSubscription = (subId) => {
+  const pauseSubscription = async (subId) => {
+    try {
+      await api.subscriptions.pause(subId);
+    } catch (e) {
+      console.warn("Backend pause failed, updating locally:", e.message);
+    }
+
     setSubscriptions((prev) =>
       prev.map((s) => (s.id === subId ? { ...s, status: "Paused" } : s))
     );
     showToast("Subscription paused. You can resume anytime without penalty.", "info");
   };
 
-  const resumeSubscription = (subId) => {
+  const resumeSubscription = async (subId) => {
+    try {
+      await api.subscriptions.resume(subId);
+    } catch (e) {
+      console.warn("Backend resume failed, updating locally:", e.message);
+    }
+
     setSubscriptions((prev) =>
       prev.map((s) => (s.id === subId ? { ...s, status: "Active" } : s))
     );
     showToast("Subscription resumed! Morning deliveries will continue tomorrow.");
   };
 
-  const skipNextDelivery = (subId) => {
+  const skipNextDelivery = async (subId) => {
+    try {
+      await api.subscriptions.skip(subId);
+    } catch (e) {
+      console.warn("Backend skip failed, updating locally:", e.message);
+    }
+
     setSubscriptions((prev) =>
       prev.map((s) =>
         s.id === subId
@@ -92,8 +147,14 @@ export const SubscriptionProvider = ({ children }) => {
     showToast("Tomorrow's delivery skipped! Your wallet won't be charged.");
   };
 
-  const modifyQuantity = (subId, newQuantity) => {
+  const modifyQuantity = async (subId, newQuantity) => {
     const qty = Math.max(1, Number(newQuantity));
+    try {
+      await api.subscriptions.updateQuantity(subId, qty);
+    } catch (e) {
+      console.warn("Backend updateQuantity failed, updating locally:", e.message);
+    }
+
     setSubscriptions((prev) =>
       prev.map((s) => {
         if (s.id === subId) {
@@ -109,33 +170,30 @@ export const SubscriptionProvider = ({ children }) => {
         return s;
       })
     );
-    showToast(`Updated daily quantity to ${qty}`);
+    showToast(`Updated to ${qty} unit(s) per delivery!`);
   };
 
-  const modifyFrequency = (subId, newFrequency) => {
-    setSubscriptions((prev) =>
-      prev.map((s) => (s.id === subId ? { ...s, frequency: newFrequency } : s))
-    );
-    showToast(`Frequency updated to: ${newFrequency}`);
-  };
+  const cancelSubscription = async (subId) => {
+    try {
+      await api.subscriptions.cancel(subId);
+    } catch (e) {
+      console.warn("Backend cancel failed, updating locally:", e.message);
+    }
 
-  const cancelSubscription = (subId) => {
-    setSubscriptions((prev) =>
-      prev.map((s) => (s.id === subId ? { ...s, status: "Cancelled" } : s))
-    );
-    showToast("Subscription cancelled.", "warning");
+    setSubscriptions((prev) => prev.filter((s) => s.id !== subId));
+    showToast("Subscription cancelled. We hope to see you back soon!", "info");
   };
 
   return (
     <SubscriptionContext.Provider
       value={{
         subscriptions,
+        refreshSubscriptions,
         addSubscription,
         pauseSubscription,
         resumeSubscription,
         skipNextDelivery,
         modifyQuantity,
-        modifyFrequency,
         cancelSubscription
       }}
     >

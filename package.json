@@ -4,14 +4,23 @@
   "description": "MilkMart - Pure Farm Fresh Milk & Dairy E-Commerce",
   "type": "module",
   "scripts": {
-    "start": "vite --port 3000 --open",
-    "dev": "vite --port 3000 --open",
+    "start": "concurrently -k -n \"BACKEND,FRONTEND\" -c \"cyan,green\" \"npm run server\" \"npm run client\"",
+    "dev": "concurrently -k -n \"BACKEND,FRONTEND\" -c \"cyan,green\" \"npm run server\" \"npm run client\"",
+    "server": "node server/server.js",
+    "client": "vite --port 3000 --open",
     "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "canvas-confetti": "^1.9.4",
+    "concurrently": "^10.0.7",
+    "cors": "^2.8.6",
+    "express": "^5.3.0",
+    "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.475.0",
+    "morgan": "^1.12.1",
+    "multer": "^2.5.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.30.6"

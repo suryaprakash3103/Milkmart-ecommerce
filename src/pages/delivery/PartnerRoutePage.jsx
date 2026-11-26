@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Store } from '../../data/store';
+import { api } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 import { 
   Truck, CheckCircle, MapPin, Phone, RefreshCcw, 
@@ -59,21 +60,38 @@ export const PartnerRoutePage = () => {
     setDriverNotes('Placed in doorstep insulated thermal bag');
   };
 
-  const handleConfirmDrop = (e) => {
+  const handleConfirmDrop = async (e) => {
     e.preventDefault();
     if (!activeStop) return;
+
+    const bottlesDeliv = activeStop.items.reduce((s, i) => s + (i.quantity || 1), 0);
+    const bottlesCollec = Number(bottlesCollected);
+    const photo = dropPhotoAttached ? '/images/products/milk-a2.jpg' : null;
+
+    try {
+      await api.delivery.completeDelivery({
+        orderId: activeStop.id,
+        bottlesDelivered: bottlesDeliv,
+        bottlesCollected: bottlesCollec,
+        photoUrl: photo,
+        notes: driverNotes,
+        silentAcknowledged: silentVerified
+      });
+    } catch (err) {
+      console.warn("Backend completeDelivery error, fallback to Store:", err.message);
+    }
 
     Store.markDeliveryCompleted({
       orderId: activeStop.id,
       partnerUser: user,
-      bottlesDelivered: activeStop.items.reduce((s, i) => s + i.quantity, 0),
-      bottlesCollected: Number(bottlesCollected),
-      photoUrl: dropPhotoAttached ? '/images/products/milk-a2.jpg' : null,
+      bottlesDelivered: bottlesDeliv,
+      bottlesCollected: bottlesCollec,
+      photoUrl: photo,
       notes: driverNotes,
       silentAcknowledged: silentVerified
     });
 
-    showToast(`Stop #${activeStop.id} completed! +₹${bottlesCollected * 10} credited to customer.`);
+    showToast(`Stop #${activeStop.id} completed! +₹${bottlesCollec * 10} credited to customer.`);
     setActiveStop(null);
     loadData();
   };

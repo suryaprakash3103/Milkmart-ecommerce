@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { Store } from '../data/store';
 import { initialAddresses } from '../data/mockAddresses';
+import { api } from '../services/api';
 
 const AuthContext = createContext();
 
@@ -38,10 +39,22 @@ export const AuthProvider = ({ children }) => {
   const isAuthenticated = !!user;
 
   // Login handler
-  const login = (email, password, expectedRole = null) => {
+  const login = async (email, password, expectedRole = null) => {
+    try {
+      const res = await api.auth.login(email, password, expectedRole);
+      if (res.success && res.user) {
+        Store.saveUser(res.user);
+        Store.setSessionUser(res.user);
+        setUser(res.user);
+        return { success: true, user: res.user };
+      }
+    } catch (apiErr) {
+      console.warn('API login failed, checking local Store:', apiErr.message);
+    }
+
+    // Local fallback
     const found = Store.findUser(email, password, expectedRole);
     if (!found) {
-      // Check if user exists with wrong password or role
       const userWithEmail = Store.findUserByEmail(email);
       if (!userWithEmail) {
         return { success: false, message: 'No MilkMart account found with this email.' };
@@ -58,7 +71,23 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Signup handler
-  const signup = (userData, signupRole = 'customer') => {
+  const signup = async (userData, signupRole = 'customer') => {
+    try {
+      const res = await api.auth.register({
+        ...userData,
+        role: signupRole
+      });
+      if (res.success && res.user) {
+        Store.saveUser(res.user);
+        Store.setSessionUser(res.user);
+        setUser(res.user);
+        return { success: true, user: res.user };
+      }
+    } catch (apiErr) {
+      console.warn('API signup failed, saving to local Store:', apiErr.message);
+    }
+
+    // Local fallback
     const existing = Store.findUserByEmail(userData.email);
     if (existing) {
       return { success: false, message: 'An account with this email already exists. Please log in.' };
@@ -72,7 +101,7 @@ export const AuthProvider = ({ children }) => {
       name: userData.name,
       phone: userData.phone || '+91 98000 00000',
       avatar: '/images/users/avatar.jpg',
-      walletBalance: signupRole === 'customer' ? 500 : 0, // ₹500 welcome bonus for customer!
+      walletBalance: signupRole === 'customer' ? 500 : 0,
       bottlesReturnedTotal: 0,
       savedAddresses: userData.address ? [
         {
@@ -120,6 +149,7 @@ export const AuthProvider = ({ children }) => {
 
   // Logout handler
   const logout = () => {
+    api.auth.logout();
     Store.clearSession();
     setUser(null);
   };
@@ -179,9 +209,23 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Wallet operations
-  const addWalletBalance = (amount, title = 'Wallet Top-Up', description = 'Added funds via UPI') => {
+  const addWalletBalance = async (amount, title = 'Wallet Top-Up', description = 'Added funds via UPI') => {
     const num = Number(amount);
     if (isNaN(num) || num <= 0 || !user) return false;
+
+    try {
+      const res = await api.wallet.topup(num, title);
+      if (res?.balance !== undefined) {
+        const updated = { ...user, walletBalance: res.balance };
+        Store.saveUser(updated);
+        Store.setSessionUser(updated);
+        setUser(updated);
+        return true;
+      }
+    } catch (e) {
+      console.warn('Backend wallet topup fallback:', e.message);
+    }
+
     Store.addWalletTransaction(user.id, {
       type: 'credit',
       amount: num,
@@ -257,8 +301,13 @@ export const AuthProvider = ({ children }) => {
     setUser(updated);
   };
 
-  const updateProfile = (profileData) => {
+  const updateProfile = async (profileData) => {
     if (!user) return;
+    try {
+      await api.auth.updateProfile(profileData);
+    } catch (e) {
+      console.warn('Backend updateProfile fallback:', e.message);
+    }
     const updated = { ...user, ...profileData };
     Store.saveUser(updated);
     Store.setSessionUser(updated);
@@ -269,9 +318,9 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         user,
-        currentUser: user, // backwards compatibility
+        currentUser: user,
         role,
-        activePortal: role || 'customer', // backwards compatibility
+        activePortal: role || 'customer',
         isAuthenticated,
         login,
         signup,

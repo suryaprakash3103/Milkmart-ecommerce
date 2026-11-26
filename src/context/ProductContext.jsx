@@ -3,6 +3,7 @@ import { initialProducts } from '../data/products';
 import { initialReviews } from '../data/mockReviews';
 import { initialChillerTelemetry } from '../data/mockChillerData';
 import { dairyCategories } from '../data/categories';
+import { api } from '../services/api';
 
 const ProductContext = createContext();
 
@@ -27,6 +28,31 @@ export const ProductProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : initialChillerTelemetry;
   });
 
+  // Load from backend API on mount
+  useEffect(() => {
+    let mounted = true;
+    const fetchCatalog = async () => {
+      try {
+        const [serverProducts, serverReviews] = await Promise.all([
+          api.products.getAll(),
+          api.reviews.getAll()
+        ]);
+        if (mounted) {
+          if (serverProducts && serverProducts.length > 0) {
+            setProducts(serverProducts);
+          }
+          if (serverReviews && serverReviews.length > 0) {
+            setReviews(serverReviews);
+          }
+        }
+      } catch (err) {
+        console.warn('API catalog fetch fallback to local cache:', err.message);
+      }
+    };
+    fetchCatalog();
+    return () => { mounted = false; };
+  }, []);
+
   // Filter state for shop
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -35,7 +61,7 @@ export const ProductProvider = ({ children }) => {
   const [priceRange, setPriceRange] = useState(3000);
   const [ratingFilter, setRatingFilter] = useState(0);
   const [inStockOnly, setInStockOnly] = useState(false);
-  const [sortBy, setSortBy] = useState('popular'); // 'popular', 'price-low', 'price-high', 'rating', 'fresh'
+  const [sortBy, setSortBy] = useState('popular');
 
   useEffect(() => {
     localStorage.setItem('milkmart_products', JSON.stringify(products));
@@ -63,8 +89,18 @@ export const ProductProvider = ({ children }) => {
     localStorage.setItem('milkmart_telemetry', JSON.stringify(chillerTelemetry));
   }, [chillerTelemetry]);
 
-  // Product CRUD (Admin)
-  const addProduct = (newProduct) => {
+  // Product CRUD (Admin / Seller)
+  const addProduct = async (newProduct) => {
+    try {
+      const created = await api.products.create(newProduct);
+      if (created) {
+        setProducts(prev => [created, ...prev]);
+        return created;
+      }
+    } catch (e) {
+      console.warn('Backend addProduct fallback:', e.message);
+    }
+
     const id = 'prod-' + Date.now();
     const product = {
       ...newProduct,
@@ -78,25 +114,44 @@ export const ProductProvider = ({ children }) => {
     return product;
   };
 
-  const updateProduct = (id, updatedFields) => {
+  const updateProduct = async (id, updatedFields) => {
+    try {
+      await api.products.update(id, updatedFields);
+    } catch (e) {
+      console.warn('Backend updateProduct fallback:', e.message);
+    }
     setProducts((prev) =>
       prev.map((p) => (p.id === id ? { ...p, ...updatedFields } : p))
     );
   };
 
-  const deleteProduct = (id) => {
+  const deleteProduct = async (id) => {
+    try {
+      await api.products.delete(id);
+    } catch (e) {
+      console.warn('Backend deleteProduct fallback:', e.message);
+    }
     setProducts((prev) => prev.filter((p) => p.id !== id));
   };
 
-  const toggleAvailability = (id) => {
+  const toggleAvailability = async (id) => {
+    const current = products.find(p => p.id === id);
+    const nextState = current?.availability === 'In Stock' ? 'Out of Stock' : 'In Stock';
+    const nextStock = nextState === 'In Stock' ? 25 : 0;
+
+    try {
+      await api.products.adjustStock(id, { action: 'set', exactValue: nextStock });
+    } catch (e) {
+      console.warn('Backend adjustStock fallback:', e.message);
+    }
+
     setProducts((prev) =>
       prev.map((p) => {
         if (p.id === id) {
-          const nextState = p.availability === 'In Stock' ? 'Out of Stock' : 'In Stock';
           return {
             ...p,
             availability: nextState,
-            stock: nextState === 'In Stock' ? 25 : 0
+            stock: nextStock
           };
         }
         return p;
@@ -114,7 +169,13 @@ export const ProductProvider = ({ children }) => {
   };
 
   // Add review
-  const addReview = (reviewData) => {
+  const addReview = async (reviewData) => {
+    try {
+      await api.reviews.create(reviewData);
+    } catch (e) {
+      console.warn('Backend review create fallback:', e.message);
+    }
+
     const newRev = {
       id: 'rev-' + Date.now(),
       ...reviewData,
@@ -124,7 +185,6 @@ export const ProductProvider = ({ children }) => {
     };
     setReviews((prev) => [newRev, ...prev]);
 
-    // Recalculate product rating
     setProducts((prev) =>
       prev.map((p) => {
         if (p.id === reviewData.productId) {
@@ -151,7 +211,7 @@ export const ProductProvider = ({ children }) => {
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           item.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          item.tags.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()));
+                          item.tags?.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()));
 
     const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
     const matchesBrand = selectedBrand === 'all' || 
@@ -176,7 +236,7 @@ export const ProductProvider = ({ children }) => {
     if (sortBy === 'price-high') return b.price - a.price;
     if (sortBy === 'rating') return b.rating - a.rating;
     if (sortBy === 'fresh') return a.freshness.localeCompare(b.freshness);
-    return b.reviewCount - a.reviewCount; // popular
+    return b.reviewCount - a.reviewCount;
   });
 
   return (

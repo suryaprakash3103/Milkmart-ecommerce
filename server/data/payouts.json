@@ -1,0 +1,24 @@
+[
+  {
+    "id": "pay-501",
+    "sellerId": "usr-seller-01",
+    "date": "2026-09-28",
+    "amount": 18500,
+    "litersPaid": 272,
+    "avgFat": 4.8,
+    "ratePerLiter": 68,
+    "status": "Settled to Bank",
+    "bankRef": "HDFC-NEFT-99120412"
+  },
+  {
+    "id": "pay-502",
+    "sellerId": "usr-seller-01",
+    "date": "2026-09-21",
+    "amount": 21000,
+    "litersPaid": 310,
+    "avgFat": 4.75,
+    "ratePerLiter": 67.7,
+    "status": "Settled to Bank",
+    "bankRef": "HDFC-NEFT-88410293"
+  }
+]

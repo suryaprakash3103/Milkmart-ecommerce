@@ -1,0 +1,52 @@
+[
+  {
+    "id": "BATCH-GIR-9042",
+    "sellerId": "usr-seller-01",
+    "farmName": "Gir Amrit Organic Gaushala",
+    "farmerName": "Devendra Patel",
+    "productName": "Farm Fresh A2 Gir Cow Raw Milk",
+    "date": "2026-11-26",
+    "milkingTime": "4:30 AM",
+    "litersDispatched": 320,
+    "fatPercentage": 4.8,
+    "snfPercentage": 8.9,
+    "chillerTemp": 3.6,
+    "somaticCellCount": "120,000 cells/ml (Premium Grade A)",
+    "adulterationTests": {
+      "urea": "Negative (Passed)",
+      "detergent": "Negative (Passed)",
+      "starch": "Negative (Passed)",
+      "waterAdded": "0% (Nil Added)",
+      "antibioticResidues": "Nil (100% Free)"
+    },
+    "feedLog": "Free-grazing green Napier grass, Moringa leaves & organic barley fodder",
+    "cattleVaccinationStatus": "100% Verified Healthy • Bi-weekly Veterinary Inspection",
+    "labCertNumber": "FSSAI-NABL-KA-2026-9042",
+    "status": "Verified & Bottled for Sunrise Run"
+  },
+  {
+    "id": "BATCH-MURRAH-8810",
+    "sellerId": "usr-seller-01",
+    "farmName": "Gir Amrit Organic Gaushala",
+    "farmerName": "Devendra Patel",
+    "productName": "Creamy Buffalo Raw Whole Milk",
+    "date": "2026-11-26",
+    "milkingTime": "4:45 AM",
+    "litersDispatched": 180,
+    "fatPercentage": 7.4,
+    "snfPercentage": 9.3,
+    "chillerTemp": 3.7,
+    "somaticCellCount": "140,000 cells/ml (Grade A)",
+    "adulterationTests": {
+      "urea": "Negative (Passed)",
+      "detergent": "Negative (Passed)",
+      "starch": "Negative (Passed)",
+      "waterAdded": "0% (Nil Added)",
+      "antibioticResidues": "Nil"
+    },
+    "feedLog": "Organic cotton seed mash, mineral lick blocks & green sorghum",
+    "cattleVaccinationStatus": "Verified Healthy",
+    "labCertNumber": "FSSAI-NABL-KA-2026-8810",
+    "status": "Verified & Bottled for Sunrise Run"
+  }
+]

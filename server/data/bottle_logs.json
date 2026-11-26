@@ -1,0 +1,48 @@
+[
+  {
+    "id": "bot-1795676193655",
+    "date": "2026-11-26",
+    "time": "12:26 PM",
+    "orderId": "MM-82316",
+    "partnerName": "Ramesh Kumar",
+    "partnerId": "usr-del-01",
+    "customerName": "Valued Customer",
+    "customerAddress": "Flat 402, Green Meadows",
+    "bottlesDelivered": 2,
+    "bottlesCollected": 3,
+    "creditGiven": 30,
+    "condition": "Rinsed & Intact European Glass",
+    "silentDelivery": true,
+    "photoUrl": null
+  },
+  {
+    "id": "bot-001",
+    "date": "2026-11-26",
+    "time": "06:12 AM",
+    "orderId": "MM-97910",
+    "partnerName": "Ramesh Kumar",
+    "partnerId": "usr-del-01",
+    "customerName": "Surya Prakash",
+    "customerAddress": "Flat 402, Green Meadows, HSR Layout",
+    "bottlesDelivered": 2,
+    "bottlesCollected": 2,
+    "creditGiven": 20,
+    "condition": "Rinsed & Intact",
+    "silentDelivery": true
+  },
+  {
+    "id": "bot-002",
+    "date": "2026-11-26",
+    "time": "06:25 AM",
+    "orderId": "MM-97880",
+    "partnerName": "Ramesh Kumar",
+    "partnerId": "usr-del-01",
+    "customerName": "Priya Sharma",
+    "customerAddress": "Flat 402, Green Glen Palms, Bellandur",
+    "bottlesDelivered": 1,
+    "bottlesCollected": 1,
+    "creditGiven": 10,
+    "condition": "Rinsed & Intact",
+    "silentDelivery": true
+  }
+]

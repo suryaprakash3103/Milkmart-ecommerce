@@ -1,11 +1,11 @@
 /**
  * MilkMart Seller & Producer Services Layer
- * API-ready architecture: Isolates all data mutations and reads so they can be
- * hooked directly to Django REST Framework / backend endpoints later.
+ * Integrated with the Express REST API backend on port 5000 with local fallback.
  */
 import { Store } from '../data/store';
 import { initialFarms, FARM_PHOTOS_VERSION } from '../data/mockFarms';
 import { initialSellerNotifications } from '../data/mockSellerNotifications';
+import { api } from './api';
 
 const FARMS_KEY = 'milkmart_farms';
 const NOTIFS_KEY = 'milkmart_seller_notifications';
@@ -47,30 +47,19 @@ if (!localStorage.getItem(NOTIFS_KEY)) {
   setStored(NOTIFS_KEY, initialSellerNotifications);
 }
 
-// One-time migration: older saved farms pointed at images that don't exist.
-// Refresh cover/logo/gallery from seed data while keeping all other edits.
-if (Number(localStorage.getItem(FARM_PHOTOS_VERSION_KEY) || 0) < FARM_PHOTOS_VERSION) {
-  const BROKEN = ['/images/farm-banner.jpg', '/images/farm-logo-1.jpg', '/images/farm-logo-2.jpg', '/images/farm-logo-3.jpg'];
-  const saved = getStored(FARMS_KEY, initialFarms);
-  const migrated = saved.map(farm => {
-    const seed = initialFarms.find(s => s.id === farm.id);
-    const fallbackSeed = initialFarms[2];
-    const src = seed || fallbackSeed;
-    const hasUserPhotos = (farm.galleryImages || []).some(g => (typeof g === 'string' ? g : g?.url || '').startsWith('data:'));
-    return {
-      ...farm,
-      coverImage: !farm.coverImage || BROKEN.includes(farm.coverImage) || farm.coverImage.includes('unsplash') ? src.coverImage : farm.coverImage,
-      logo: !farm.logo || BROKEN.includes(farm.logo) || farm.logo.includes('unsplash') ? (seed ? seed.logo : '/images/milk-bottle.svg') : farm.logo,
-      galleryImages: hasUserPhotos ? farm.galleryImages : (seed ? seed.galleryImages : src.galleryImages.slice(0, 6))
-    };
-  });
-  setStored(FARMS_KEY, migrated);
-  localStorage.setItem(FARM_PHOTOS_VERSION_KEY, String(FARM_PHOTOS_VERSION));
-}
-
 export const sellerService = {
   // --- AUTHENTICATION & REGISTRATION ---
   async sellerLogin(emailOrPhone, password) {
+    try {
+      const res = await api.auth.login(emailOrPhone, password, 'seller');
+      if (res?.user) {
+        Store.setSessionUser(res.user);
+        return res.user;
+      }
+    } catch (e) {
+      console.warn('Backend login fallback to local Store:', e.message);
+    }
+
     const users = Store.getUsers();
     const query = emailOrPhone.trim().toLowerCase();
     const user = users.find(u => 
@@ -86,6 +75,30 @@ export const sellerService = {
   },
 
   async sellerRegister(sellerData) {
+    try {
+      const res = await api.auth.register({
+        email: sellerData.email,
+        password: sellerData.password,
+        name: sellerData.fullName,
+        phone: sellerData.phone,
+        role: 'seller',
+        farmName: sellerData.farmName,
+        location: `${sellerData.farmLocation}, ${sellerData.district}, ${sellerData.state}`,
+        district: sellerData.district,
+        state: sellerData.state,
+        pincode: sellerData.pincode,
+        sellerType: sellerData.sellerType,
+        fssaiLicense: sellerData.fssaiLicense || "11223344556677"
+      });
+      if (res?.user) {
+        Store.saveUser(res.user);
+        Store.setSessionUser(res.user);
+        return res.user;
+      }
+    } catch (e) {
+      console.warn('Backend register fallback to local Store:', e.message);
+    }
+
     const users = Store.getUsers();
     const existing = users.find(u => u.email?.toLowerCase() === sellerData.email.toLowerCase());
     if (existing) {
@@ -118,7 +131,6 @@ export const sellerService = {
 
     Store.saveUser(newSeller);
 
-    // Create corresponding farm profile
     const newFarm = {
       id: farmId,
       sellerId,
@@ -152,14 +164,6 @@ export const sellerService = {
     const farms = getStored(FARMS_KEY, initialFarms);
     setStored(FARMS_KEY, [newFarm, ...farms]);
 
-    // Send welcome notification
-    this.addNotification(sellerId, {
-      title: "Welcome to MilkMart Producer Hub!",
-      message: `Your farm '${sellerData.farmName}' has been registered. You can now add your dairy SKUs and start receiving doorstep orders.`,
-      type: "verified",
-      link: "/seller/farm"
-    });
-
     Store.setSessionUser(newSeller);
     return newSeller;
   },
@@ -171,6 +175,12 @@ export const sellerService = {
   },
 
   async updateSellerProfile(sellerId, updates) {
+    try {
+      await api.auth.updateProfile(updates);
+    } catch (e) {
+      console.warn('Backend updateProfile fallback:', e.message);
+    }
+
     const users = Store.getUsers();
     const idx = users.findIndex(u => u.id === sellerId);
     if (idx >= 0) {
@@ -186,10 +196,16 @@ export const sellerService = {
   },
 
   async getFarmProfile(sellerId) {
+    try {
+      const serverFarm = await api.farms.getById(sellerId);
+      if (serverFarm) return serverFarm;
+    } catch (e) {
+      // fallback
+    }
+
     const farms = getStored(FARMS_KEY, initialFarms);
     let farm = farms.find(f => f.sellerId === sellerId);
     if (!farm) {
-      // Fallback matching by farm name from user
       const user = await this.getSellerProfile(sellerId);
       farm = farms.find(f => f.name?.toLowerCase() === user?.farmName?.toLowerCase()) || farms[0];
     }
@@ -197,15 +213,41 @@ export const sellerService = {
   },
 
   async getFarmById(farmId) {
+    try {
+      const serverFarm = await api.farms.getById(farmId);
+      if (serverFarm) return serverFarm;
+    } catch (e) {
+      // fallback
+    }
     const farms = getStored(FARMS_KEY, initialFarms);
     return farms.find(f => f.id === farmId) || farms[0];
   },
 
   async getAllFarms() {
+    try {
+      const serverFarms = await api.farms.getAll();
+      if (serverFarms && serverFarms.length > 0) return serverFarms;
+    } catch (e) {
+      // fallback
+    }
     return getStored(FARMS_KEY, initialFarms);
   },
 
   async updateFarmProfile(sellerId, farmData) {
+    try {
+      const updated = await api.farms.update(farmData.id || sellerId, farmData);
+      if (updated) {
+        const farms = getStored(FARMS_KEY, initialFarms);
+        const idx = farms.findIndex(f => f.id === updated.id || f.sellerId === sellerId);
+        if (idx >= 0) farms[idx] = updated;
+        else farms.unshift(updated);
+        setStored(FARMS_KEY, farms);
+        return updated;
+      }
+    } catch (e) {
+      console.warn('Backend updateFarm fallback:', e.message);
+    }
+
     const farms = getStored(FARMS_KEY, initialFarms);
     let idx = farmData.id ? farms.findIndex(f => f.id === farmData.id) : -1;
     if (idx < 0) idx = farms.findIndex(f => f.sellerId === sellerId);
@@ -223,6 +265,20 @@ export const sellerService = {
 
   // --- PRODUCTS ---
   async getProducts(sellerId = null, filters = {}) {
+    try {
+      const serverProducts = await api.products.getAll({
+        sellerId: sellerId || '',
+        category: filters.category || '',
+        status: filters.status || '',
+        search: filters.search || ''
+      });
+      if (serverProducts && serverProducts.length > 0) {
+        return serverProducts;
+      }
+    } catch (e) {
+      console.warn('Backend getProducts fallback:', e.message);
+    }
+
     const all = Store.getProducts();
     let list = all;
 
@@ -253,11 +309,32 @@ export const sellerService = {
   },
 
   async getProductById(id) {
+    try {
+      const prod = await api.products.getById(id);
+      if (prod) return prod;
+    } catch (e) {
+      // fallback
+    }
     const all = Store.getProducts();
     return all.find(p => p.id === id) || null;
   },
 
   async createProduct(productData, sellerUser) {
+    try {
+      const created = await api.products.create({
+        ...productData,
+        sellerId: sellerUser?.id,
+        farmId: sellerUser?.farmId,
+        brand: sellerUser?.farmName
+      });
+      if (created) {
+        Store.saveProduct(created);
+        return created;
+      }
+    } catch (e) {
+      console.warn('Backend createProduct fallback:', e.message);
+    }
+
     const id = `prod-${Date.now()}`;
     const newProduct = {
       id,
@@ -305,21 +382,20 @@ export const sellerService = {
     };
 
     Store.saveProduct(newProduct);
-
-    // If pending approval, notify
-    if (newProduct.approvalStatus === 'pending') {
-      this.addNotification(sellerUser?.id, {
-        title: "Product Submitted for Approval",
-        message: `'${newProduct.name}' has been submitted for admin quality approval.`,
-        type: "info",
-        link: "/seller/products"
-      });
-    }
-
     return newProduct;
   },
 
   async updateProduct(productId, updates) {
+    try {
+      const updated = await api.products.update(productId, updates);
+      if (updated) {
+        Store.saveProduct(updated);
+        return updated;
+      }
+    } catch (e) {
+      console.warn('Backend updateProduct fallback:', e.message);
+    }
+
     const all = Store.getProducts();
     const idx = all.findIndex(p => p.id === productId);
     if (idx >= 0) {
@@ -336,6 +412,11 @@ export const sellerService = {
   },
 
   async deleteProduct(productId) {
+    try {
+      await api.products.delete(productId);
+    } catch (e) {
+      console.warn('Backend deleteProduct fallback:', e.message);
+    }
     Store.deleteProduct(productId);
     return true;
   },
@@ -375,6 +456,16 @@ export const sellerService = {
   },
 
   async updateInventoryItem(productId, { action, amount, exactValue }) {
+    try {
+      const res = await api.products.adjustStock(productId, { action, amount, exactValue });
+      if (res) {
+        Store.saveProduct(res);
+        return res;
+      }
+    } catch (e) {
+      console.warn('Backend adjustStock fallback:', e.message);
+    }
+
     const prod = await this.getProductById(productId);
     if (!prod) throw new Error("Product not found");
 
@@ -388,22 +479,24 @@ export const sellerService = {
       availability: newStock > 0 ? 'In Stock' : 'Out of Stock',
       lastUpdated: "Just now"
     });
-
-    // Low stock notification trigger
-    if (newStock <= (prod.lowStockThreshold || 15) && newStock > 0) {
-      this.addNotification(prod.sellerId, {
-        title: "Low Inventory Warning",
-        message: `${prod.name} has only ${newStock} units remaining. Update stock to avoid order pauses.`,
-        type: "warning",
-        link: "/seller/inventory"
-      });
-    }
-
     return updated;
   },
 
   // --- ORDERS ---
   async getOrders(sellerId = null, statusFilter = 'all') {
+    try {
+      const serverOrders = await api.orders.getAll();
+      if (serverOrders && serverOrders.length > 0) {
+        let list = serverOrders;
+        if (statusFilter && statusFilter !== 'all') {
+          list = list.filter(o => (o.sellerStatus || o.status || 'Pending').toLowerCase() === statusFilter.toLowerCase());
+        }
+        return list;
+      }
+    } catch (e) {
+      console.warn('Backend getOrders fallback:', e.message);
+    }
+
     const all = Store.getOrders();
     let list = all;
 
@@ -428,6 +521,12 @@ export const sellerService = {
   },
 
   async getOrderById(orderId) {
+    try {
+      const serverOrd = await api.orders.getById(orderId);
+      if (serverOrd) return serverOrd;
+    } catch (e) {
+      // fallback
+    }
     const all = Store.getOrders();
     const q = String(orderId || '').toLowerCase().replace(/^#/, '');
     return all.find(o => 
@@ -438,6 +537,20 @@ export const sellerService = {
   },
 
   async updateOrderStatus(orderId, newStatus) {
+    try {
+      const res = await api.orders.updateStatus(orderId, newStatus);
+      if (res) {
+        // sync local store
+        const all = Store.getOrders();
+        const idx = all.findIndex(o => o.id === res.id);
+        if (idx >= 0) all[idx] = res;
+        setStored('milkmart_orders', all);
+        return res;
+      }
+    } catch (e) {
+      console.warn('Backend updateOrderStatus fallback:', e.message);
+    }
+
     const all = Store.getOrders();
     const q = String(orderId || '').toLowerCase().replace(/^#/, '');
     const idx = all.findIndex(o => 
@@ -449,32 +562,14 @@ export const sellerService = {
       const ord = all[idx];
       const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-      // Update customer timeline
-      const updatedTimeline = ord.timeline ? ord.timeline.map(s => {
-        if (s.title.toLowerCase().includes(newStatus.toLowerCase())) {
-          return { ...s, completed: true, active: true, time: now };
-        }
-        return s;
-      }) : [];
-
       all[idx] = {
         ...ord,
         sellerStatus: newStatus,
         status: newStatus === 'Ready' ? 'Out for Delivery' : (newStatus === 'Delivered' ? 'Delivered' : ord.status),
-        timeline: updatedTimeline,
         updatedAt: now
       };
 
       setStored('milkmart_orders', all);
-
-      // Notify seller
-      this.addNotification(ord.sellerId || 'usr-seller-02', {
-        title: `Order #${ord.id} Updated`,
-        message: `Order status changed to '${newStatus}'.`,
-        type: "order",
-        link: `/seller/orders/${ord.id}`
-      });
-
       return all[idx];
     }
     throw new Error("Order not found");
@@ -482,6 +577,13 @@ export const sellerService = {
 
   // --- SALES & ANALYTICS ---
   async getSalesAnalytics(sellerId) {
+    try {
+      const res = await api.analytics.getSellerAnalytics(sellerId || 'usr-seller-01');
+      if (res) return res;
+    } catch (e) {
+      // fallback
+    }
+
     const orders = await this.getOrders(sellerId);
     const completed = orders.filter(o => o.status === 'Delivered' || o.sellerStatus === 'Delivered');
 
@@ -490,7 +592,6 @@ export const sellerService = {
     const weekRevenue = Math.round(totalRevenue * 0.38);
     const monthRevenue = totalRevenue;
 
-    // Platform commission (5%)
     const platformFee = Math.round(totalRevenue * 0.05);
     const netSellerEarnings = totalRevenue - platformFee;
 
@@ -531,6 +632,12 @@ export const sellerService = {
 
   // --- NOTIFICATIONS ---
   async getNotifications(sellerId) {
+    try {
+      const res = await api.notifications.getAll();
+      if (res && res.length > 0) return res;
+    } catch (e) {
+      // fallback
+    }
     const all = getStored(NOTIFS_KEY, initialSellerNotifications);
     if (!sellerId) return all;
     return all.filter(n => n.sellerId === sellerId || !n.sellerId);
@@ -550,12 +657,18 @@ export const sellerService = {
   },
 
   async markNotificationRead(notifId) {
+    try {
+      await api.notifications.markRead(notifId);
+    } catch (e) {}
     const all = getStored(NOTIFS_KEY, initialSellerNotifications);
     const updated = all.map(n => n.id === notifId ? { ...n, read: true } : n);
     setStored(NOTIFS_KEY, updated);
   },
 
   async markAllNotificationsRead(sellerId) {
+    try {
+      await api.notifications.markAllRead();
+    } catch (e) {}
     const all = getStored(NOTIFS_KEY, initialSellerNotifications);
     const updated = all.map(n => n.sellerId === sellerId ? { ...n, read: true } : n);
     setStored(NOTIFS_KEY, updated);
@@ -563,36 +676,42 @@ export const sellerService = {
 
   // --- ADMIN APPROVAL SYSTEM ---
   async approveProduct(productId) {
+    try {
+      const res = await api.products.setApproval(productId, 'approved');
+      if (res) {
+        Store.saveProduct(res);
+        return res;
+      }
+    } catch (e) {
+      console.warn('Backend approveProduct fallback:', e.message);
+    }
+
     const all = Store.getProducts();
     const idx = all.findIndex(p => p.id === productId);
     if (idx >= 0) {
       all[idx] = { ...all[idx], approvalStatus: 'approved' };
       setStored('milkmart_products', all);
-
-      this.addNotification(all[idx].sellerId, {
-        title: "Product Approved by Admin ✓",
-        message: `'${all[idx].name}' has been verified and published to the MilkMart storefront!`,
-        type: "success",
-        link: "/seller/products"
-      });
       return all[idx];
     }
     throw new Error("Product not found");
   },
 
   async rejectProduct(productId, reason = "Quality parameters require revision") {
+    try {
+      const res = await api.products.setApproval(productId, 'rejected', reason);
+      if (res) {
+        Store.saveProduct(res);
+        return res;
+      }
+    } catch (e) {
+      console.warn('Backend rejectProduct fallback:', e.message);
+    }
+
     const all = Store.getProducts();
     const idx = all.findIndex(p => p.id === productId);
     if (idx >= 0) {
       all[idx] = { ...all[idx], approvalStatus: 'rejected', rejectionReason: reason };
       setStored('milkmart_products', all);
-
-      this.addNotification(all[idx].sellerId, {
-        title: "Product Revision Requested",
-        message: `'${all[idx].name}' was rejected: ${reason}`,
-        type: "warning",
-        link: "/seller/products"
-      });
       return all[idx];
     }
     throw new Error("Product not found");

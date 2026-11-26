@@ -1,0 +1,52 @@
+[
+  {
+    "id": "tx-1795676193652",
+    "userId": "usr-cust-01",
+    "date": "Nov 26, 2026, 12:26 PM",
+    "type": "credit",
+    "amount": 30,
+    "title": "Glass Bottle Return Credit (3 bottles)",
+    "description": "Doorstep return verified by delivery partner • +₹10 each",
+    "balanceAfter": 1110
+  },
+  {
+    "id": "tx-1795676193553",
+    "userId": "usr-cust-01",
+    "date": "Nov 26, 2026, 12:26 PM",
+    "type": "debit",
+    "amount": 170,
+    "title": "Order #MM-82316 Paid",
+    "description": "Farm Fresh Dairy (1 items) • Doorstep sunrise run",
+    "balanceAfter": 1080
+  },
+  {
+    "id": "tx-101",
+    "userId": "usr-cust-01",
+    "date": "2026-09-18 06:45 AM",
+    "type": "credit",
+    "amount": 20,
+    "title": "Empty Glass Bottle Return (2 bottles)",
+    "description": "Doorstep pickup by Ramesh Kumar • ₹10 per bottle refund",
+    "balanceAfter": 1250
+  },
+  {
+    "id": "tx-102",
+    "userId": "usr-cust-01",
+    "date": "2026-09-17 09:15 PM",
+    "type": "debit",
+    "amount": 220,
+    "title": "Order #MM-98241 Paid",
+    "description": "Farm Fresh A2 Gir Cow Milk (2L) + Set Dahi (500g)",
+    "balanceAfter": 1230
+  },
+  {
+    "id": "tx-103",
+    "userId": "usr-cust-01",
+    "date": "2026-09-15 10:00 AM",
+    "type": "credit",
+    "amount": 1000,
+    "title": "MilkMart Wallet Top-Up",
+    "description": "UPI Auto-load / Added funds",
+    "balanceAfter": 1450
+  }
+]

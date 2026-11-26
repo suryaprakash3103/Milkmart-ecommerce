@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { initialOrders } from '../data/mockOrders';
 import { useAuth } from './AuthContext';
 import { useToast } from './ToastContext';
+import { api } from '../services/api';
 
 const OrderContext = createContext();
 
@@ -14,11 +15,28 @@ export const OrderProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : initialOrders;
   });
 
+  // Load from backend API on mount
+  useEffect(() => {
+    let mounted = true;
+    const fetchOrders = async () => {
+      try {
+        const serverOrders = await api.orders.getAll();
+        if (mounted && serverOrders && serverOrders.length > 0) {
+          setOrders(serverOrders);
+        }
+      } catch (err) {
+        console.warn('API orders fetch fallback to local cache:', err.message);
+      }
+    };
+    fetchOrders();
+    return () => { mounted = false; };
+  }, []);
+
   useEffect(() => {
     localStorage.setItem('milkmart_orders', JSON.stringify(orders));
   }, [orders]);
 
-  const placeOrder = ({
+  const placeOrder = async ({
     items,
     deliveryAddress,
     timeSlot,
@@ -30,11 +48,7 @@ export const OrderProvider = ({ children }) => {
     total,
     instructions = ""
   }) => {
-    const orderNum = Math.floor(10000 + Math.random() * 90000);
-    const orderId = `MM-${orderNum}`;
-    const today = new Date().toISOString().split('T')[0];
-
-    // If paying by MilkMart Wallet, deduct funds
+    // If paying by MilkMart Wallet, check balance
     if (paymentMethod === 'MilkMart Wallet') {
       const ok = deductWalletBalance(total);
       if (!ok) {
@@ -42,6 +56,33 @@ export const OrderProvider = ({ children }) => {
         return { success: false, message: "Insufficient balance" };
       }
     }
+
+    try {
+      const res = await api.orders.create({
+        items,
+        deliveryAddress,
+        timeSlot,
+        paymentMethod,
+        subtotal,
+        discount,
+        deliveryFee,
+        bottleDeposit,
+        total,
+        instructions
+      });
+      if (res?.success && res.order) {
+        setOrders(prev => [res.order, ...prev]);
+        showToast(`Order #${res.orderId} placed successfully! Doorstep delivery tomorrow.`);
+        return { success: true, orderId: res.orderId, order: res.order };
+      }
+    } catch (e) {
+      console.warn('Backend order placement fallback to local:', e.message);
+    }
+
+    // Local fallback
+    const orderNum = Math.floor(10000 + Math.random() * 90000);
+    const orderId = `MM-${orderNum}`;
+    const today = new Date().toISOString().split('T')[0];
 
     const newOrder = {
       id: orderId,
@@ -52,7 +93,7 @@ export const OrderProvider = ({ children }) => {
       items: items.map((i) => ({ ...i })),
       deliveryAddress: {
         ...deliveryAddress,
-        dropInstruction: instructions || deliveryAddress.instructions || "Leave in doorstep thermal bag"
+        dropInstruction: instructions || deliveryAddress?.instructions || "Leave in doorstep thermal bag"
       },
       paymentMethod,
       paymentStatus: "Paid",
@@ -84,12 +125,18 @@ export const OrderProvider = ({ children }) => {
     return { success: true, orderId };
   };
 
-  const updateOrderStatus = (orderId, nextStatus, partnerInfo = null) => {
+  const updateOrderStatus = async (orderId, nextStatus, partnerInfo = null) => {
+    try {
+      await api.orders.updateStatus(orderId, nextStatus, partnerInfo);
+    } catch (e) {
+      console.warn('Backend updateOrderStatus fallback:', e.message);
+    }
+
     setOrders((prev) =>
       prev.map((ord) => {
         if (ord.id === orderId) {
           const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          const updatedTimeline = ord.timeline.map((step) => {
+          const updatedTimeline = (ord.timeline || []).map((step) => {
             if (step.title.toLowerCase().includes(nextStatus.toLowerCase())) {
               return { ...step, completed: true, active: true, time: now };
             }
@@ -99,6 +146,7 @@ export const OrderProvider = ({ children }) => {
           return {
             ...ord,
             status: nextStatus,
+            sellerStatus: nextStatus,
             deliveryPartner: partnerInfo || ord.deliveryPartner,
             timeline: updatedTimeline
           };
@@ -109,10 +157,20 @@ export const OrderProvider = ({ children }) => {
     showToast(`Order #${orderId} status updated to: ${nextStatus}`);
   };
 
-  const recordBottleReturn = (orderId, bottleCount) => {
+  const recordBottleReturn = async (orderId, bottleCount) => {
     const count = Number(bottleCount);
     if (isNaN(count) || count <= 0) return;
-    const creditAmount = count * 10; // ₹10 per sanitized glass bottle returned
+    const creditAmount = count * 10;
+
+    try {
+      await api.delivery.completeDelivery({
+        orderId,
+        bottlesCollected: count,
+        bottlesDelivered: 1
+      });
+    } catch (e) {
+      console.warn('Backend completeDelivery fallback:', e.message);
+    }
 
     setOrders((prev) =>
       prev.map((ord) => {

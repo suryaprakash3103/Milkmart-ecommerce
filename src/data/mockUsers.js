@@ -1,4 +1,4 @@
-import { initialAddresses } from './mockAddresses';
+import { initialAddresses } from './mockAddresses.js';
 
 export const mockUsers = [
   {
