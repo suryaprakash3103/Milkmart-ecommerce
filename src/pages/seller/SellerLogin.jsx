@@ -80,11 +80,54 @@ export const SellerLogin = () => {
             <Award size={14} /> Dairy Producer &amp; Farmer Portal
           </div>
           <h2 style={{ fontSize: '1.6rem', color: '#FAF7F2', margin: '10px 0 4px 0', fontFamily: 'Fraunces, Georgia, serif' }}>
-            Seller Sign In
+            Seller &amp; Producer Portal
           </h2>
-          <p style={{ margin: 0, fontSize: '0.86rem', color: '#CBD5CB' }}>
-            Manage your livestock yield, dairy SKUs, doorstep dispatches, and farm payouts.
+          <p style={{ margin: '0 0 16px 0', fontSize: '0.86rem', color: '#CBD5CB' }}>
+            Manage livestock yield, dairy SKUs, doorstep dispatches, and farm payouts
           </p>
+
+          {/* Primary Action Switcher: Sign In vs Register */}
+          <div style={{
+            display: 'flex',
+            backgroundColor: 'rgba(255, 255, 255, 0.12)',
+            borderRadius: '12px',
+            padding: '4px',
+            gap: '4px'
+          }}>
+            <button
+              type="button"
+              style={{
+                flex: 1,
+                padding: '8px',
+                borderRadius: '8px',
+                border: 'none',
+                backgroundColor: '#E8C582',
+                color: '#183626',
+                fontSize: '0.86rem',
+                fontWeight: '800',
+                cursor: 'default'
+              }}
+            >
+              Seller Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/seller/register')}
+              style={{
+                flex: 1,
+                padding: '8px',
+                borderRadius: '8px',
+                border: 'none',
+                backgroundColor: 'transparent',
+                color: '#FAF7F2',
+                fontSize: '0.86rem',
+                fontWeight: '600',
+                cursor: 'pointer'
+              }}
+            >
+              Register Farm →
+            </button>
+          </div>
         </div>
 
         {/* 1-Click Demo Evaluation Shortcuts */}

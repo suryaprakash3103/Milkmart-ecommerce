@@ -129,11 +129,54 @@ export const SignupPage = () => {
             <BrandLogo variant="compact" theme="light" size="md" />
           </div>
           <h2 style={{ fontSize: '1.6rem', color: '#FAF7F2', margin: '0 0 6px 0', fontFamily: 'Fraunces, Georgia, serif' }}>
-            Join the MilkMart Family
+            Register New Account
           </h2>
-          <p style={{ margin: 0, fontSize: '0.86rem', color: '#CBD5CB' }}>
-            Subscribe to morning farm-fresh milk or join our sunrise delivery fleet
+          <p style={{ margin: '0 0 16px 0', fontSize: '0.86rem', color: '#CBD5CB' }}>
+            Join as a Customer (+₹500 bonus), Delivery Fleet Partner, or Dairy Farmer
           </p>
+
+          {/* Primary Action Switcher: Sign In vs Register */}
+          <div style={{
+            display: 'flex',
+            backgroundColor: 'rgba(255, 255, 255, 0.12)',
+            borderRadius: '12px',
+            padding: '4px',
+            gap: '4px'
+          }}>
+            <button
+              type="button"
+              onClick={() => navigate('/login', { state: { defaultRole: signupRole } })}
+              style={{
+                flex: 1,
+                padding: '8px',
+                borderRadius: '8px',
+                border: 'none',
+                backgroundColor: 'transparent',
+                color: '#FAF7F2',
+                fontSize: '0.86rem',
+                fontWeight: '600',
+                cursor: 'pointer'
+              }}
+            >
+              ← Sign In
+            </button>
+            <button
+              type="button"
+              style={{
+                flex: 1,
+                padding: '8px',
+                borderRadius: '8px',
+                border: 'none',
+                backgroundColor: '#E8C582',
+                color: '#183626',
+                fontSize: '0.86rem',
+                fontWeight: '800',
+                cursor: 'default'
+              }}
+            >
+              Create Account
+            </button>
+          </div>
         </div>
 
         <div style={{ padding: '28px' }}>

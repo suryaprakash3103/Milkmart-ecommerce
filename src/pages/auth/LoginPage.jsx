@@ -174,11 +174,54 @@ export const LoginPage = () => {
             <BrandLogo variant="compact" theme="light" size="md" />
           </div>
           <h2 style={{ fontSize: '1.6rem', color: '#FAF7F2', margin: '0 0 6px 0', fontFamily: 'Fraunces, Georgia, serif' }}>
-            Welcome to MilkMart
+            MilkMart Multi-Portal Access
           </h2>
-          <p style={{ margin: 0, fontSize: '0.86rem', color: '#CBD5CB' }}>
-            Pure farm-fresh milk delivered daily in returnable glass bottles
+          <p style={{ margin: '0 0 16px 0', fontSize: '0.86rem', color: '#CBD5CB' }}>
+            Sign in or create an account for any MilkMart dairy portal
           </p>
+
+          {/* Primary Action Switcher: Sign In vs Register */}
+          <div style={{
+            display: 'flex',
+            backgroundColor: 'rgba(255, 255, 255, 0.12)',
+            borderRadius: '12px',
+            padding: '4px',
+            gap: '4px'
+          }}>
+            <button
+              type="button"
+              style={{
+                flex: 1,
+                padding: '8px',
+                borderRadius: '8px',
+                border: 'none',
+                backgroundColor: '#E8C582',
+                color: '#183626',
+                fontSize: '0.86rem',
+                fontWeight: '800',
+                cursor: 'default'
+              }}
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/signup', { state: { defaultRole: activeTab === 'admin' ? 'customer' : activeTab } })}
+              style={{
+                flex: 1,
+                padding: '8px',
+                borderRadius: '8px',
+                border: 'none',
+                backgroundColor: 'transparent',
+                color: '#FAF7F2',
+                fontSize: '0.86rem',
+                fontWeight: '600',
+                cursor: 'pointer'
+              }}
+            >
+              Create Account →
+            </button>
+          </div>
         </div>
 
         {/* 1-Click Instant Demo Login Bar */}
