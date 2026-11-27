@@ -11,7 +11,6 @@ import {
 } from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
 import { WalletIcon } from './WalletIcon';
-import { InstallAppButton } from './InstallAppButton';
 
 export const Navbar = ({ onOpenWallet, onOpenAuth }) => {
   const { user, currentUser, role, isAuthenticated, switchRole, logout } = useAuth();
@@ -276,9 +275,6 @@ export const Navbar = ({ onOpenWallet, onOpenAuth }) => {
               {itemCount}
             </span>
           </button>
-
-          {/* PWA Direct Install Pill */}
-          <InstallAppButton variant="normal" />
 
           {/* User Profile / Portal Dropdown or Sign In */}
           {!isAuthenticated ? (
