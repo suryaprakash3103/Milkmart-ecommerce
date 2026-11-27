@@ -5,15 +5,86 @@
     <link rel="icon" type="image/svg+xml" href="/images/milk-bottle.svg" />
     <meta name="theme-color" content="#183626" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- PWA Manifest & App Info -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="application-name" content="MilkMart" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="MilkMart" />
+    <link rel="apple-touch-icon" href="/images/milk-bottle.svg" />
+
+    <!-- SEO Meta Tags for Google, Opera, Edge, Bing -->
     <title>MilkMart | Pure Farm • Ethical Dairy & Glass Bottle Delivery</title>
-    <meta name="description" content="Fresh farm milk, cold-pressed artisanal dairy, cultured butter, and daily recurring subscriptions delivered in sanitized glass bottles before sunrise." />
+    <meta name="description" content="Fresh raw A2 cow milk, Bilona ghee, thick set curd, and morning dairy subscriptions delivered before sunrise in sanitized returnable glass bottles across India." />
+    <meta name="keywords" content="MilkMart, A2 milk, Gir cow milk, farm fresh milk, dairy subscription, glass bottle milk, raw milk delivery, bilona ghee, paneer" />
+    <meta name="author" content="MilkMart Farmstead Dairy" />
+    <link rel="canonical" href="https://milkmart.farm/" />
+
+    <!-- Open Graph (Facebook, WhatsApp, LinkedIn) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://milkmart.farm/" />
+    <meta property="og:title" content="MilkMart | Pure Farm Fresh Milk & Ethical Glass Bottle Delivery" />
+    <meta property="og:description" content="Pure unadulterated indigenous dairy sourced directly from verified gaushalas and delivered before 7:30 AM in chilled glass bottles." />
+    <meta property="og:image" content="https://milkmart.farm/images/farms/cover-green-valley.jpg" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="MilkMart | Farm-to-Doorstep Glass Bottle Dairy" />
+    <meta name="twitter:description" content="Pure A2 indigenous cow milk & morning subscriptions delivered before sunrise." />
+    <meta name="twitter:image" content="https://milkmart.farm/images/farms/cover-green-valley.jpg" />
+
     <!-- Google Fonts: Fraunces & Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..700&family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..700&display=swap" rel="stylesheet">
+
+    <!-- Schema.org Rich Search Snippet (Google & Bing Knowledge Graph) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://milkmart.farm/#website",
+          "url": "https://milkmart.farm/",
+          "name": "MilkMart",
+          "description": "Pure Farm Fresh Dairy & Glass Bottle Morning Subscriptions",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://milkmart.farm/products?search={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://milkmart.farm/#organization",
+          "name": "MilkMart Pure Farm Private Limited",
+          "url": "https://milkmart.farm/",
+          "logo": "https://milkmart.farm/images/milk-bottle.svg",
+          "sameAs": [
+            "https://facebook.com/milkmartfarm",
+            "https://instagram.com/milkmartfarm",
+            "https://twitter.com/milkmartfarm"
+          ]
+        }
+      ]
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch((err) => {
+            console.log('SW registration note:', err);
+          });
+        });
+      }
+    </script>
   </body>
 </html>

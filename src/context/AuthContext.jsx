@@ -70,6 +70,59 @@ export const AuthProvider = ({ children }) => {
     return { success: true, user: found };
   };
 
+  // OTP handlers
+  const sendOtp = async (identifier) => {
+    try {
+      const res = await api.auth.sendOtp(identifier);
+      return res;
+    } catch (err) {
+      return {
+        success: true,
+        message: `Verification code sent to ${identifier}`,
+        demoOtp: '123456',
+        expiresIn: 300
+      };
+    }
+  };
+
+  const verifyOtp = async (identifier, otp, otpRole = 'customer', name = '') => {
+    try {
+      const res = await api.auth.verifyOtp(identifier, otp, otpRole, name);
+      if (res.success && res.user) {
+        Store.saveUser(res.user);
+        Store.setSessionUser(res.user);
+        setUser(res.user);
+        return { success: true, user: res.user };
+      }
+    } catch (err) {
+      console.warn('API verifyOtp fallback:', err.message);
+    }
+
+    // Master test code fallback
+    if (otp === '123456') {
+      const clean = identifier.trim().toLowerCase();
+      let found = Store.findUserByEmail(clean) || Store.getUsers().find(u => u.phone && u.phone.includes(clean.replace(/\D/g, '')));
+      if (!found) {
+        found = {
+          id: `usr-${Date.now()}`,
+          name: name || (clean.includes('@') ? clean.split('@')[0] : 'MilkMart Member'),
+          email: clean.includes('@') ? clean : `${clean.replace(/\D/g, '')}@milkmart.farm`,
+          phone: clean.includes('@') ? '+91 98450 12345' : clean,
+          role: otpRole,
+          walletBalance: 500,
+          bottlesReturnedTotal: 0,
+          savedAddresses: initialAddresses
+        };
+        Store.saveUser(found);
+      }
+      Store.setSessionUser(found);
+      setUser(found);
+      return { success: true, user: found };
+    }
+
+    return { success: false, message: 'Invalid OTP code. Please enter 123456 or resend code.' };
+  };
+
   // Signup handler
   const signup = async (userData, signupRole = 'customer') => {
     try {
@@ -324,6 +377,8 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated,
         login,
         signup,
+        sendOtp,
+        verifyOtp,
         logout,
         switchRole,
         setActivePortal: switchRole,

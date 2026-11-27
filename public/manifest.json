@@ -1,0 +1,54 @@
+{
+  "name": "MilkMart - Pure Farm Fresh Milk & Ethical Dairy",
+  "short_name": "MilkMart",
+  "description": "Ethical dairy and pure farm-fresh milk delivered quietly before sunrise in sanitized glass bottles.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#FAF7F2",
+  "theme_color": "#183626",
+  "scope": "/",
+  "categories": ["shopping", "food", "lifestyle"],
+  "icons": [
+    {
+      "src": "/images/milk-bottle.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/milk-bottle.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/images/milk-bottle.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Shop Fresh Milk",
+      "url": "/products?category=milk",
+      "description": "Raw A2 & Gir Cow Whole Milk"
+    },
+    {
+      "name": "Daily Subscriptions",
+      "url": "/account/subscriptions",
+      "description": "Manage Morning Delivery Schedules"
+    },
+    {
+      "name": "My Orders",
+      "url": "/orders",
+      "description": "Track Live Sunrise Doorstep Drop"
+    },
+    {
+      "name": "Farmer / Seller Portal",
+      "url": "/seller/dashboard",
+      "description": "Dairy Producer Operations Hub"
+    }
+  ]
+}

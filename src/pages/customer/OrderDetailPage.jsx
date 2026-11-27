@@ -3,9 +3,10 @@ import { useParams, Link } from 'react-router-dom';
 import { useOrders } from '../../context/OrderContext';
 import { 
   ArrowLeft, Truck, CheckCircle2, Clock, MapPin, 
-  Phone, ShieldCheck, RefreshCcw, User, Check, FileText 
+  Phone, ShieldCheck, RefreshCcw, User, Check, FileText, Smartphone 
 } from 'lucide-react';
 import { TaxInvoiceModal } from '../../components/common/TaxInvoiceModal';
+import { buildOrderWhatsAppMessage, openWhatsApp } from '../../utils/whatsappNotification';
 
 export const OrderDetailPage = () => {
   const { id } = useParams();
@@ -75,7 +76,28 @@ export const OrderDetailPage = () => {
             <div style={{ marginTop: '8px', fontSize: '0.84rem', color: '#FAF7F2' }}>
               Window: <strong>{order.timeSlot}</strong>
             </div>
-            <div style={{ marginTop: '10px' }}>
+            <div style={{ marginTop: '10px', display: 'flex', gap: '8px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => openWhatsApp(order.deliveryAddress?.phone || '+91 98450 12345', buildOrderWhatsAppMessage(order))}
+                style={{
+                  backgroundColor: '#25D366',
+                  border: 'none',
+                  color: '#FFFFFF',
+                  padding: '6px 14px',
+                  borderRadius: '20px',
+                  fontSize: '0.8rem',
+                  fontWeight: '700',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(37, 211, 102, 0.3)'
+                }}
+              >
+                <Smartphone size={14} /> WhatsApp Invoice
+              </button>
+
               <button
                 type="button"
                 onClick={() => setIsInvoiceOpen(true)}

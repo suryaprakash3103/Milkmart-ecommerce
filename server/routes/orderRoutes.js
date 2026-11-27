@@ -189,6 +189,12 @@ router.post('/', optionalAuth, (req, res) => {
     };
 
     db.insert('orders', newOrder);
+    
+    // Simulated WhatsApp Webhook Notification Dispatch
+    console.log(`\n📲 [WHATSAPP NOTIFICATION DISPATCHED] Order #${orderId} confirmation delivered to ${deliveryAddress?.phone || '+91 98450 12345'}:`);
+    console.log(`   Items: ${items.length} | Amount: ₹${total} | Delivery Window: ${newOrder.timeSlot}`);
+    console.log(`   Direct Link: https://milkmart.farm/orders/${orderId}\n`);
+
     return res.status(201).json({ success: true, orderId, order: newOrder });
   } catch (err) {
     console.error('Error placing order:', err);
@@ -236,6 +242,8 @@ router.patch('/:id/status', optionalAuth, (req, res) => {
     };
 
     const updated = db.update('orders', order.id, updates);
+    console.log(`\n📲 [WHATSAPP LIVE UPDATE] Order #${order.id} status is now: ${updates.status}`);
+    console.log(`   Customer notification sent to ${order.deliveryAddress?.phone || '+91 98450 12345'}: Delivery partner Ramesh Kumar in EV KA01-EK-4501\n`);
     return res.json({ success: true, order: updated });
   } catch (err) {
     return res.status(500).json({ success: false, message: 'Failed to update order status.' });

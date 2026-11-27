@@ -205,6 +205,96 @@ router.put('/password', authenticate, (req, res) => {
   }
 });
 
+// OTP Storage Map
+const otpStore = new Map();
+
+// POST /api/auth/send-otp
+router.post('/send-otp', (req, res) => {
+  try {
+    const { identifier } = req.body;
+    if (!identifier) {
+      return res.status(400).json({ success: false, message: 'Mobile number or email is required.' });
+    }
+
+    const clean = identifier.trim().toLowerCase();
+    const isEmail = clean.includes('@');
+    const otp = clean === '9845012345' || clean.includes('example.com') ? '123456' : Math.floor(100000 + Math.random() * 900000).toString();
+
+    otpStore.set(clean, {
+      otp,
+      expiresAt: Date.now() + 5 * 60 * 1000
+    });
+
+    console.log(`\n📲 [OTP DISPATCH] Verification code for ${clean}: ${otp} (Via ${isEmail ? 'Email' : 'WhatsApp/SMS'})\n`);
+
+    return res.json({
+      success: true,
+      message: `6-digit verification code sent to ${clean} via ${isEmail ? 'Email' : 'SMS & WhatsApp'}.`,
+      demoOtp: otp,
+      expiresIn: 300
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: 'Failed to send OTP.' });
+  }
+});
+
+// POST /api/auth/verify-otp
+router.post('/verify-otp', (req, res) => {
+  try {
+    const { identifier, otp, role = 'customer', name } = req.body;
+    if (!identifier || !otp) {
+      return res.status(400).json({ success: false, message: 'Mobile/Email and 6-digit OTP code are required.' });
+    }
+
+    const clean = identifier.trim().toLowerCase();
+    const cleanDigits = clean.replace(/\D/g, '');
+    const entry = otpStore.get(clean);
+
+    // Accept master test code 123456 or matching OTP
+    const isValid = otp === '123456' || (entry && entry.otp === otp && entry.expiresAt > Date.now());
+    if (!isValid) {
+      return res.status(400).json({ success: false, message: 'Invalid or expired OTP code. Use 123456 or request a new one.' });
+    }
+
+    let user = db.find('users', u => 
+      u.email?.toLowerCase() === clean || 
+      (cleanDigits.length >= 10 && u.phone?.replace(/\D/g, '').endsWith(cleanDigits.slice(-10)))
+    );
+
+    if (!user) {
+      const isEmail = clean.includes('@');
+      const userId = `usr-cust-${Date.now()}`;
+      user = {
+        id: userId,
+        email: isEmail ? clean : `user_${cleanDigits.slice(-6)}@milkmart.farm`,
+        phone: !isEmail ? clean : '+91 98000 00000',
+        password: 'password123',
+        name: name || (isEmail ? clean.split('@')[0] : `Customer ${cleanDigits.slice(-4)}`),
+        role: role || 'customer',
+        avatar: '/images/users/avatar.jpg',
+        walletBalance: 500,
+        bottlesReturnedTotal: 0,
+        savedAddresses: [],
+        createdAt: new Date().toISOString()
+      };
+      db.insert('users', user);
+    }
+
+    const token = signToken(user);
+    const { password: _, ...safeUser } = user;
+    otpStore.delete(clean);
+
+    return res.json({
+      success: true,
+      message: 'OTP verified successfully! Welcome to MilkMart.',
+      token,
+      user: safeUser
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: 'OTP verification failed.' });
+  }
+});
+
 // POST /api/auth/forgot-password
 router.post('/forgot-password', (req, res) => {
   try {

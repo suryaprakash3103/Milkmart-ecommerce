@@ -89,6 +89,18 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ email, newPassword })
     }),
+    sendOtp: (identifier) => request('/auth/send-otp', {
+      method: 'POST',
+      body: JSON.stringify({ identifier })
+    }),
+    verifyOtp: async (identifier, otp, role = 'customer', name = '') => {
+      const res = await request('/auth/verify-otp', {
+        method: 'POST',
+        body: JSON.stringify({ identifier, otp, role, name })
+      });
+      if (res.token) setToken(res.token);
+      return res;
+    },
     logout: () => {
       setToken(null);
     }

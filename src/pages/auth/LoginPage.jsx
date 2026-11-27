@@ -5,22 +5,30 @@ import { useToast } from '../../context/ToastContext';
 import { BrandLogo } from '../../components/common/BrandLogo';
 import { 
   Lock, Mail, User, ShieldCheck, Truck, Award, 
-  ArrowRight, Eye, EyeOff, Sparkles, CheckCircle2, AlertCircle 
+  ArrowRight, Eye, EyeOff, Sparkles, CheckCircle2, AlertCircle, Smartphone 
 } from 'lucide-react';
 
 export const LoginPage = () => {
-  const { login, switchRole } = useAuth();
+  const { login, sendOtp, verifyOtp, switchRole } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [activeTab, setActiveTab] = useState('customer'); // 'customer' | 'delivery' | 'admin'
+  const [loginMethod, setLoginMethod] = useState('password'); // 'password' | 'otp'
+  const [activeTab, setActiveTab] = useState('customer'); // 'customer' | 'delivery' | 'admin' | 'seller'
   const [email, setEmail] = useState('surya.prakash@example.com');
   const [password, setPassword] = useState('password123');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // OTP flow state
+  const [otpIdentifier, setOtpIdentifier] = useState('+91 98450 12345');
+  const [otpCode, setOtpCode] = useState('');
+  const [isOtpSent, setIsOtpSent] = useState(false);
+  const [countdown, setCountdown] = useState(60);
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
 
   // Return destination after successful login
   const fromLocation = location.state?.from?.pathname;
@@ -41,15 +49,63 @@ export const LoginPage = () => {
     if (role === 'admin') {
       setEmail('admin@milkmart.farm');
       setPassword('admin123');
+      setOtpIdentifier('admin@milkmart.farm');
     } else if (role === 'delivery') {
       setEmail('ramesh.delivery@milkmart.farm');
       setPassword('partner123');
+      setOtpIdentifier('+91 98450 99999');
     } else if (role === 'seller') {
       setEmail('farmer.patel@milkmart.farm');
       setPassword('farmer123');
+      setOtpIdentifier('+91 94432 10987');
     } else {
       setEmail('surya.prakash@example.com');
       setPassword('password123');
+      setOtpIdentifier('+91 98450 12345');
+    }
+  };
+
+  const handleSendOtp = async (e) => {
+    if (e) e.preventDefault();
+    if (!otpIdentifier.trim()) {
+      setError('Please enter your mobile phone or email.');
+      return;
+    }
+    setError('');
+    setIsSendingOtp(true);
+    try {
+      const res = await sendOtp(otpIdentifier);
+      setIsOtpSent(true);
+      setCountdown(60);
+      showToast(res.message || 'OTP sent via WhatsApp and SMS!');
+      if (res.demoOtp) setOtpCode(res.demoOtp);
+    } catch (err) {
+      setError(err.message || 'Failed to dispatch OTP code.');
+    } finally {
+      setIsSendingOtp(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    if (!otpCode || otpCode.length < 4) {
+      setError('Please enter the 6-digit OTP code.');
+      return;
+    }
+    setError('');
+    setIsSubmitting(true);
+    try {
+      const res = await verifyOtp(otpIdentifier, otpCode, activeTab);
+      setIsSubmitting(false);
+      if (res.success) {
+        showToast(`Welcome back, ${res.user.name || 'valued user'}!`);
+        navigate(getDestinationForRole(res.user.role), { replace: true });
+      } else {
+        setError(res.message || 'Invalid or expired OTP code.');
+      }
+    } catch (err) {
+      setIsSubmitting(false);
+      setError(err.message || 'OTP verification failed.');
     }
   };
 
@@ -332,6 +388,218 @@ export const LoginPage = () => {
             </div>
           )}
 
+          {/* Authentication Mode Switcher */}
+          <div style={{
+            display: 'flex',
+            gap: '8px',
+            marginBottom: '18px',
+            borderBottom: '1px solid #EFE8D8',
+            paddingBottom: '12px'
+          }}>
+            <button
+              type="button"
+              onClick={() => { setLoginMethod('password'); setError(''); }}
+              style={{
+                flex: 1,
+                padding: '8px 12px',
+                borderRadius: '8px',
+                fontSize: '0.82rem',
+                fontWeight: loginMethod === 'password' ? '700' : '600',
+                backgroundColor: loginMethod === 'password' ? '#183626' : '#FAF5EE',
+                color: loginMethod === 'password' ? '#FAF7F2' : '#55685C',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px'
+              }}
+            >
+              <Lock size={13} /> Password Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => { setLoginMethod('otp'); setError(''); }}
+              style={{
+                flex: 1,
+                padding: '8px 12px',
+                borderRadius: '8px',
+                fontSize: '0.82rem',
+                fontWeight: loginMethod === 'otp' ? '700' : '600',
+                backgroundColor: loginMethod === 'otp' ? '#183626' : '#FAF5EE',
+                color: loginMethod === 'otp' ? '#FAF7F2' : '#55685C',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px'
+              }}
+            >
+              <Smartphone size={13} /> WhatsApp / SMS OTP
+            </button>
+          </div>
+
+          {loginMethod === 'otp' ? (
+            <div>
+              {!isOtpSent ? (
+                <form onSubmit={handleSendOtp}>
+                  <div style={{ marginBottom: '16px' }}>
+                    <label style={{ display: 'block', fontSize: '0.84rem', fontWeight: '700', color: '#183626', marginBottom: '6px' }}>
+                      Registered Mobile Number or Email
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <Smartphone size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#798C80' }} />
+                      <input
+                        type="text"
+                        required
+                        value={otpIdentifier}
+                        onChange={(e) => setOtpIdentifier(e.target.value)}
+                        placeholder="+91 98450 12345 or user@example.com"
+                        style={{
+                          width: '100%',
+                          padding: '11px 14px 11px 40px',
+                          borderRadius: '10px',
+                          border: '1.5px solid #E6DEC9',
+                          fontSize: '0.9rem',
+                          color: '#183626',
+                          backgroundColor: '#FAF7F2'
+                        }}
+                      />
+                    </div>
+                    <span style={{ fontSize: '0.74rem', color: '#798C80', marginTop: '6px', display: 'block' }}>
+                      We will instantly dispatch a 6-digit OTP code to your WhatsApp and SMS.
+                    </span>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isSendingOtp}
+                    style={{
+                      width: '100%',
+                      padding: '13px',
+                      borderRadius: '12px',
+                      backgroundColor: '#183626',
+                      color: '#FAF7F2',
+                      border: 'none',
+                      fontSize: '0.96rem',
+                      fontWeight: '700',
+                      cursor: isSendingOtp ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px'
+                    }}
+                  >
+                    {isSendingOtp ? 'Sending OTP Code...' : 'Send WhatsApp & SMS Code'}
+                    <ArrowRight size={16} />
+                  </button>
+                </form>
+              ) : (
+                <form onSubmit={handleVerifyOtp}>
+                  <div style={{
+                    backgroundColor: '#E8F5EE',
+                    borderRadius: '10px',
+                    padding: '10px 14px',
+                    marginBottom: '16px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}>
+                    <div>
+                      <div style={{ fontSize: '0.72rem', color: '#196D3D', fontWeight: '700' }}>OTP DISPATCHED TO:</div>
+                      <strong style={{ fontSize: '0.88rem', color: '#183626' }}>{otpIdentifier}</strong>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => { setIsOtpSent(false); setOtpCode(''); }}
+                      style={{ background: 'none', border: 'none', color: '#196D3D', fontSize: '0.74rem', textDecoration: 'underline', cursor: 'pointer', fontWeight: '700' }}
+                    >
+                      Edit
+                    </button>
+                  </div>
+
+                  <div style={{ marginBottom: '14px' }}>
+                    <label style={{ display: 'block', fontSize: '0.84rem', fontWeight: '700', color: '#183626', marginBottom: '6px' }}>
+                      Enter 6-Digit OTP
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      maxLength="6"
+                      value={otpCode}
+                      onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                      placeholder="123456"
+                      style={{
+                        width: '100%',
+                        padding: '12px 14px',
+                        borderRadius: '10px',
+                        border: '2px solid #183626',
+                        fontSize: '1.3rem',
+                        letterSpacing: '6px',
+                        textAlign: 'center',
+                        fontWeight: '800',
+                        color: '#183626',
+                        backgroundColor: '#FFFFFF'
+                      }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', fontSize: '0.76rem' }}>
+                    <button
+                      type="button"
+                      onClick={() => setOtpCode('123456')}
+                      style={{
+                        border: '1px dashed #A26D24',
+                        background: '#FAF5EE',
+                        color: '#8E5A17',
+                        padding: '4px 8px',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontWeight: '700'
+                      }}
+                    >
+                      ⚡ Auto-fill Test Code: 123456
+                    </button>
+                    {countdown > 0 ? (
+                      <span style={{ color: '#798C80' }}>Resend in {countdown}s</span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleSendOtp}
+                        style={{ background: 'none', border: 'none', color: '#183626', fontWeight: '700', cursor: 'pointer' }}
+                      >
+                        Resend Code
+                      </button>
+                    )}
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    style={{
+                      width: '100%',
+                      padding: '13px',
+                      borderRadius: '12px',
+                      backgroundColor: '#183626',
+                      color: '#FAF7F2',
+                      border: 'none',
+                      fontSize: '0.96rem',
+                      fontWeight: '700',
+                      cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px'
+                    }}
+                  >
+                    <CheckCircle2 size={16} />
+                    {isSubmitting ? 'Verifying...' : `Verify OTP & Access ${activeTab === 'delivery' ? 'Fleet' : activeTab === 'admin' ? 'Admin Hub' : 'Account'}`}
+                  </button>
+                </form>
+              )}
+            </div>
+          ) : (
           <form onSubmit={handleLoginSubmit}>
             {/* Email Field */}
             <div style={{ marginBottom: '16px' }}>
@@ -450,6 +718,7 @@ export const LoginPage = () => {
               <ArrowRight size={16} />
             </button>
           </form>
+          )}
 
           {/* Footer Signup Link */}
           <div style={{

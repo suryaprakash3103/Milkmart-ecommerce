@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useOrders } from '../../context/OrderContext';
 import { useToast } from '../../context/ToastContext';
 import confetti from 'canvas-confetti';
+import { PaymentGatewayModal } from '../../components/checkout/PaymentGatewayModal';
 import { 
   MapPin, Clock, CreditCard, ShieldCheck, 
   CheckCircle2, Plus, Wallet, Sparkles, QrCode 
@@ -30,6 +31,7 @@ export const CheckoutPage = () => {
   const [b2bGstin, setB2bGstin] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("MilkMart Wallet");
   const [isAddingAddress, setIsAddingAddress] = useState(false);
+  const [isGatewayOpen, setIsGatewayOpen] = useState(false);
 
   // New address form state
   const [newTag, setNewTag] = useState("Home");
@@ -77,13 +79,17 @@ export const CheckoutPage = () => {
 
   const handlePlaceOrder = (e) => {
     e.preventDefault();
-
-    if (paymentMethod === 'MilkMart Wallet' && currentUser.walletBalance < finalTotal) {
-      showToast(`Insufficient wallet balance (Available: ₹${currentUser.walletBalance}). Please choose UPI or top up.`, 'error');
+    const chosenAddr = currentUser.savedAddresses[selectedAddressIndex] || currentUser.savedAddresses[0];
+    if (!chosenAddr) {
+      showToast("Please choose or add a delivery address.", "error");
       return;
     }
+    // Launch Swiggy / Amazon style express payment gateway
+    setIsGatewayOpen(true);
+  };
 
-    if (paymentMethod === 'MilkMart Wallet') {
+  const handlePaymentSuccess = (paymentDetails) => {
+    if (paymentDetails.paymentMethod.includes('Wallet')) {
       deductWalletBalance(finalTotal);
     }
 
@@ -93,7 +99,8 @@ export const CheckoutPage = () => {
       items: cartItems,
       deliveryAddress: chosenAddr,
       timeSlot: deliverySlot,
-      paymentMethod,
+      paymentMethod: paymentDetails.paymentMethod,
+      transactionId: paymentDetails.transactionId,
       subtotal,
       discount: discountAmount,
       deliveryFee,
@@ -110,19 +117,8 @@ export const CheckoutPage = () => {
     });
 
     if (result.success) {
-      // Fire celebratory confetti!
-      try {
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 },
-          colors: ['#183626', '#E8C582', '#A26D24', '#FAF7F2']
-        });
-      } catch (err) {
-        // Confetti fallback safely ignored
-      }
-
       clearCart();
+      setIsGatewayOpen(false);
       navigate(`/order-confirmation?orderId=${result.orderId}`);
     }
   };
@@ -642,16 +638,27 @@ export const CheckoutPage = () => {
                 className="btn btn-primary btn-lg"
                 style={{ width: '100%', justifyContent: 'center', marginTop: '20px', marginBottom: '12px' }}
               >
-                <CheckCircle2 size={18} /> Confirm &amp; Place Sunrise Order
+                <CheckCircle2 size={18} /> Proceed to Secure Payment (₹{finalTotal})
               </button>
 
               <div style={{ fontSize: '0.78rem', color: '#798C80', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                 <ShieldCheck size={14} color="#196D3D" />
-                <span>Simulated instant order placement with live tracking</span>
+                <span>Swiggy &amp; Amazon style multi-option express payment gateway</span>
               </div>
             </div>
           </div>
         </form>
+
+        {/* Swiggy / Amazon Style Express Gateway Modal */}
+        <PaymentGatewayModal
+          isOpen={isGatewayOpen}
+          onClose={() => setIsGatewayOpen(false)}
+          amount={finalTotal}
+          walletBalance={currentUser.walletBalance || 0}
+          customerName={currentUser.name || 'Surya Prakash'}
+          customerPhone={currentUser.phone || '+91 98450 12345'}
+          onPaymentSuccess={handlePaymentSuccess}
+        />
       </div>
     </div>
   );
