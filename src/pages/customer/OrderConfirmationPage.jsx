@@ -256,7 +256,7 @@ export const OrderConfirmationPage = () => {
           {/* Action CTAs */}
           <div style={{ display: 'flex', gap: '14px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link to={`/orders/${order.id}`} className="btn btn-dark btn-lg">
-              <Truck size={18} /> Live Order Tracking (Swiggy Style)
+              <Truck size={18} /> Live Morning Delivery Tracking
             </Link>
             <Link to="/products" className="btn btn-ghost btn-lg">
               Browse More Dairy

@@ -84,7 +84,7 @@ export const CheckoutPage = () => {
       showToast("Please choose or add a delivery address.", "error");
       return;
     }
-    // Launch Swiggy / Amazon style express payment gateway
+    // Launch MilkMart express secure payment gateway
     setIsGatewayOpen(true);
   };
 
@@ -643,13 +643,13 @@ export const CheckoutPage = () => {
 
               <div style={{ fontSize: '0.78rem', color: '#798C80', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                 <ShieldCheck size={14} color="#196D3D" />
-                <span>Swiggy &amp; Amazon style multi-option express payment gateway</span>
+                <span>100% RBI-Compliant 256-Bit SSL Encrypted MilkMart Pay Gateway</span>
               </div>
             </div>
           </div>
         </form>
 
-        {/* Swiggy / Amazon Style Express Gateway Modal */}
+        {/* MilkMart Express Secure Gateway Modal */}
         <PaymentGatewayModal
           isOpen={isGatewayOpen}
           onClose={() => setIsGatewayOpen(false)}

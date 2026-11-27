@@ -20,7 +20,6 @@ import { CartDrawer } from './components/cart/CartDrawer';
 import { WalletModal } from './components/common/WalletModal';
 import { BlueprintModal } from './components/common/BlueprintModal';
 import { AuthModal } from './pages/customer/AuthModal';
-import { LiveOrderTrackerPill } from './components/common/LiveOrderTrackerPill';
 
 // Auth & Shared Pages
 import { LoginPage } from './pages/auth/LoginPage';
@@ -345,8 +344,7 @@ function AppContent() {
         </Routes>
       </div>
 
-      {/* Global Modals, Drawers & Live Floating Order Tracker */}
-      <LiveOrderTrackerPill />
+      {/* Global Modals & Drawers */}
       <CartDrawer />
       <WalletModal isOpen={isWalletOpen} onClose={() => setIsWalletOpen(false)} />
       <BlueprintModal isOpen={isBlueprintOpen} onClose={() => setIsBlueprintOpen(false)} />

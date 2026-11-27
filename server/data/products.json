@@ -46,7 +46,7 @@
     },
     "rating": 4.9,
     "reviewCount": 342,
-    "stock": 43,
+    "stock": 41,
     "availability": "In Stock",
     "freshness": "Fresh Today",
     "bestBefore": "2 Days (Keep Chilled at 4°C)",
@@ -67,7 +67,7 @@
       "fat": "4.8g",
       "calcium": "128mg"
     },
-    "availableStock": 43
+    "availableStock": 41
   },
   {
     "id": "milk-02",
@@ -420,7 +420,7 @@
     },
     "rating": 4.9,
     "reviewCount": 412,
-    "stock": 58,
+    "stock": 57,
     "availability": "In Stock",
     "freshness": "Fresh Today",
     "bestBefore": "5 Days",
@@ -439,7 +439,8 @@
       "carbs": "4.5g",
       "fat": "4.5g",
       "calcium": "145mg"
-    }
+    },
+    "availableStock": 57
   },
   {
     "id": "curd-02",
